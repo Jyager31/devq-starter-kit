@@ -6,10 +6,25 @@
  */
 function devq_page_has_block($block_slug)
 {
-  if (!is_singular()) {
-    return true;
+  if (is_singular()) {
+    return has_block('acf/' . $block_slug);
   }
-  return has_block('acf/' . $block_slug);
+
+  // On an archive/search, check the posts actually in the loop rather than
+  // returning true -- that shortcut loaded Slick, BeefUp and Magnific on every
+  // archive on the site whether or not anything used them.
+  global $wp_query;
+  if (empty($wp_query->posts)) {
+    return false;
+  }
+
+  foreach ($wp_query->posts as $devq_post) {
+    if (!empty($devq_post->post_content) && has_block('acf/' . $block_slug, $devq_post)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -17,11 +32,8 @@ function devq_page_has_block($block_slug)
  */
 function devq_page_has_any_block($slugs)
 {
-  if (!is_singular()) {
-    return true;
-  }
-  foreach ($slugs as $slug) {
-    if (has_block('acf/' . $slug)) {
+  foreach ((array) $slugs as $slug) {
+    if (devq_page_has_block($slug)) {
       return true;
     }
   }

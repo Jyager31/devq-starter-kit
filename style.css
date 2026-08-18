@@ -131,7 +131,11 @@ h5 {
   border: 2px solid var(--primary);
   border-radius: var(--button-radius, 4px);
   cursor: pointer;
-  min-width: 250px;
+  /* Chunky by default, but never a hard floor. A flat `min-width: 250px` here
+     resolves flex items' `min-width: auto` to 250px, so a .btn in a card footer
+     or filter bar refuses to shrink and pushes its siblings out of the
+     container. min() keeps the look and lets it collapse when space is tight. */
+  min-width: min(250px, 100%);
 }
 
 .btn i {

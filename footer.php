@@ -75,12 +75,6 @@ $social = array_filter($social);
   </div>
 </footer>
 
-<script>
-	jQuery(document).ready(function($) {
-		AOS.init();
-	});
-</script>
-
 <?php wp_footer(); ?>
 
 <?php

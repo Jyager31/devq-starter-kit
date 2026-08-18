@@ -226,3 +226,59 @@ function devq_get_image_or_placeholder($field_name, $width = 800, $height = 600,
 
     return devq_placeholder_image($width, $height, $seed);
 }
+
+/**
+ * Render a responsive <img> for an ACF image field.
+ *
+ * Block templates that hand-write <img src="<?php echo $url; ?>"> serve the
+ * FULL-SIZE original with no srcset and no width/height -- an easy way to ship
+ * several MB of images on one page and take a CLS penalty. Use this instead.
+ *
+ * @param array|int|string $image ACF image array, attachment ID, or URL.
+ * @param string           $size  Registered size: thumbnail|medium|large|full.
+ * @param array            $attr  Extra attributes, e.g. array('class' => 'x-img').
+ * @return string HTML, or '' when there is no image.
+ */
+function devq_image($image, $size = 'large', $attr = array())
+{
+    $defaults = array('loading' => 'lazy', 'decoding' => 'async');
+    $attr = array_merge($defaults, $attr);
+
+    $id = 0;
+    if (is_array($image) && !empty($image['ID'])) {
+        $id = (int) $image['ID'];
+    } elseif (is_numeric($image)) {
+        $id = (int) $image;
+    }
+
+    // A real attachment gets srcset, sizes and intrinsic dimensions for free.
+    if ($id && wp_attachment_is_image($id)) {
+        if (empty($attr['alt'])) {
+            $attr['alt'] = trim((string) get_post_meta($id, '_wp_attachment_image_alt', true));
+        }
+        return wp_get_attachment_image($id, $size, false, $attr);
+    }
+
+    // Fall back to a bare URL (placeholders, external images). No srcset is
+    // possible, but never emit an <img> with no dimensions at all.
+    $url = '';
+    if (is_array($image) && !empty($image['url'])) {
+        $url = $image['url'];
+    } elseif (is_string($image) && $image !== '') {
+        $url = $image;
+    }
+    if ($url === '') {
+        return '';
+    }
+
+    if (empty($attr['width']))  { $attr['width']  = 800; }
+    if (empty($attr['height'])) { $attr['height'] = 600; }
+    if (!isset($attr['alt']))   { $attr['alt']    = ''; }
+
+    $out = '';
+    foreach ($attr as $k => $v) {
+        $out .= sprintf(' %s="%s"', esc_attr($k), esc_attr($v));
+    }
+
+    return '<img src="' . esc_url($url) . '"' . $out . ' />';
+}

@@ -341,6 +341,19 @@ Use the `.btn` class system for all buttons. Do NOT use `.btn-inline`.
 | `btn btn-outline-secondary` | Transparent bg, secondary border |
 | `btn btn-outline-white` | Transparent bg, white border/text (for dark backgrounds) |
 
+## Images -- always use devq_image()
+
+Never hand-write `<img src="<?php echo $url; ?>">` in a block. That serves the full-size original
+with no `srcset` and no width/height -- multiple MB on one page, plus a CLS penalty.
+
+```php
+<?php echo devq_image(get_field('photo'), 'large', array('class' => 'servicecard-img')); ?>
+```
+
+Accepts an ACF image array, an attachment ID, or a URL. Real attachments get `srcset`, `sizes`,
+intrinsic dimensions and the alt text from the media library. Pick the `$size` that matches how
+big the image actually renders -- a 300px-wide card does not need `full`.
+
 ## Escaping Rules
 
 - Text content: `esc_html()`
