@@ -53,7 +53,12 @@ $devq_theme = $is_child ? $parent_theme : $active_theme;
 
 // A scaffolded site renames the theme to the client, so identify the kit by its
 // own marker rather than by name.
-$devq_kit_stamp = $devq_theme->get('DevQ Kit');
+// WP_Theme::get() only exposes known headers, and extra_theme_headers is
+// registered too late for the active theme, so read style.css directly.
+$devq_kit_stamp = trim((string) get_file_data(
+    $devq_theme->get_stylesheet_directory() . '/style.css',
+    array('kit' => 'DevQ Kit')
+)['kit']);
 if ($devq_kit_stamp || strpos(strtolower($devq_theme->get('Name')), 'devq') !== false) {
     health_pass("DevQ kit theme active: {$devq_theme->get('Name')} (v{$devq_theme->get('Version')})"
         . ($devq_kit_stamp ? " from kit {$devq_kit_stamp}" : ''));
