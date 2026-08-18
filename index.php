@@ -1,12 +1,7 @@
 <?php
 
 /**
- * The main template file.
+ * The main template file. Shares the archive layout.
  */
 
-get_header();
-
-// Load the selected archive style (shared with archive.php)
-get_template_part('template-parts/archive/style', $layout_archive_style);
-
-get_footer();
+require __DIR__ . '/archive.php';

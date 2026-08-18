@@ -1,50 +1,57 @@
-# DevQ Starter Theme - Claude Block Generator Instructions
+# DevQ Starter Kit - Claude Block Generator Instructions
+
+## What this is
+
+A **scaffold**, not a framework. Clone it, rename the directory to the client slug, and build.
+One theme per site: there is no parent, no child, and no premade blocks.
+
+`get_template_directory()` and `get_stylesheet_directory()` are always the same directory here.
+That is deliberate -- the old parent/child split is what caused the block-JSON path bug, the
+empty-repeater-in-editor bug and a long list of CSS specificity traps.
 
 ## Theme Architecture
 
 - **Theme root:** This directory
 - **Block location:** `blocks/[blockname]/code.php`
-- **Block registration:** `functions/blocks.php` — `$basefunctions` array
+- **Block registration:** the `devq_blocks` filter (see below). `blocks/` ships EMPTY.
 - **ACF JSON:** `acfjson/group_[blockname]_block.json`
-- **Spacing system:** `functions/spacing.php` — centralized responsive spacing
-- **Animation helper:** `functions/animations.php` — `devq_aos()` helper for AOS attribute generation
-- **Page builder:** `functions/page-builder.php` — programmatic page creation
-- **Page presets:** `functions/page-presets.php` — common page layouts
-- **Theme settings CSS:** `theme-settings-css.php` — generates CSS variables from ACF options
+- **Spacing system:** `functions/spacing.php` -- centralized responsive spacing
+- **Animation helper:** `functions/animations.php` -- `devq_aos()` helper for AOS attribute generation
+- **Page builder:** `functions/page-builder.php` -- programmatic page creation
+- **Theme settings CSS:** `theme-settings-css.php` -- generates CSS variables from ACF options
 - **Main stylesheet:** `style.css`
-- **Theme updater:** `functions/theme-updater.php` — GitHub release update checker
-- **Release workflow:** `.github/workflows/release.yml` — auto-builds release zip on tag push
-- **Child theme boilerplate:** `devq-starter-child/` — copy per client site
+- **Header / footer:** `header.php` and `footer.php` -- single files, rewritten to spec per site
 
-## Releasing Updates
+## Blocks are built per site
 
-This theme auto-updates on all sites via a public GitHub repo and `plugin-update-checker`. When a new GitHub release is published, every site running this theme will see the update in WP Admin.
+**Never** start a build from a premade block. Every section gets a block designed for that site.
 
-### Release Steps
+The 30 blocks this theme used to ship now live in the toolkit at
+`Claude Code Toolkit/Commands/block-builder/_library/`, for **post-launch use only** -- an
+already-launched site that needs a routine section and has no design requirement worth a custom
+block. `_library/_scripts/create-block-library.php` remains a useful reference for field shapes
+(exact field names, select values, repeater structure); read it for structure, not for choices.
 
-1. Bump `Version:` in `style.css` (this is the single source of truth)
-2. Commit the change
-3. Tag and push:
-   ```bash
-   git tag vX.Y.Z && git push origin master vX.Y.Z
-   ```
-4. GitHub Actions automatically builds the zip and creates the release — done
+## Registering a block
 
-### Version Format
+```php
+add_filter('devq_blocks', function ($blocks) {
+    $blocks[] = 'Proof Cards';   // display name; folder is blocks/proofcards/
+    return $blocks;
+});
+```
 
-Use semver: `MAJOR.MINOR.PATCH`
-- **Patch** (1.0.1) — bug fixes, copy changes
-- **Minor** (1.1.0) — new blocks, new features
-- **Major** (2.0.0) — breaking changes to child themes or block structure
+`devq_get_blocks()` returns an empty array by default, so the list is whatever this site adds.
+While it is empty, `devq_allowed_block_types()` falls through to the full core block list rather
+than locking the page editor.
 
-### Do NOT
+## Versioning
 
-- Manually create releases on GitHub (the Actions workflow handles this)
-- Edit anything in the `plugin-update-checker/` directory (third-party library)
+`Version:` in `style.css` is the source of truth. There is no auto-updater: the kit is consumed
+by `git clone` at scaffold time, and a scaffolded site is thereafter its own theme. Fixes flow
+forward to new sites, not backward to shipped ones.
 
-### Child Themes
-
-Per-site customizations (colors, fonts, extra blocks, templates) belong in child themes, not in this repo. Copy `devq-starter-child/` as a starting point for each client.
+The `DevQ Kit:` line in `style.css` records the kit commit a site was born from. Leave it.
 
 ## Field Naming Convention
 
@@ -63,10 +70,10 @@ All new blocks MUST follow this naming convention. Existing blocks may use legac
 | Secondary button | `secondary_button` | link | For blocks with two CTAs |
 | Main image | `image` | image | Generic image field |
 | Background image | `background_image` | image | For hero/section backgrounds |
-| Background color | `background_color` | color_picker | — |
+| Background color | `background_color` | color_picker | -- |
 | Background style | `background` | select | light/dark/primary/secondary |
 | Overlay opacity | `overlay_opacity` | number | 0-100 percentage |
-| Overlay color | `overlay_color` | color_picker | — |
+| Overlay color | `overlay_color` | color_picker | -- |
 | Layout toggle | `image_position` | select | left/right |
 | Column count | `columns` | select | 2/3/4 |
 | Display style | `style` | select | Block-specific options |
@@ -80,11 +87,11 @@ All new blocks MUST follow this naming convention. Existing blocks may use legac
 | Item body | `description` | Use `description` inside repeaters (not `content`) |
 | Item image | `image` | Generic |
 | Person photo | `photo` | For team/testimonial repeaters |
-| Person name | `name` | — |
+| Person name | `name` | -- |
 | Person role | `role` | Job title / position |
 | Person quote | `quote` | For testimonial repeaters |
 | Logo image | `logo` | For logo bar / marquee repeaters |
-| Item link | `link` | — |
+| Item link | `link` | -- |
 | Icon class | `icon_class` | FontAwesome class string |
 | Featured flag | `is_featured` | true_false for highlighted items |
 | Star rating | `rating` | number 1-5 |
@@ -92,10 +99,10 @@ All new blocks MUST follow this naming convention. Existing blocks may use legac
 ### Legacy Field Names (existing blocks)
 
 These fields exist in current blocks and should NOT be renamed (would break client sites):
-- FAQ uses `question`/`answer` instead of `title`/`description` — acceptable, domain-specific
-- Banner uses `text` instead of `content` — legacy, use `content` for new blocks
-- Stats repeater uses `number`/`label`/`prefix`/`suffix` — acceptable, domain-specific
-- Pricing repeater uses `price`/`period`/`features` — acceptable, domain-specific
+- FAQ uses `question`/`answer` instead of `title`/`description` -- acceptable, domain-specific
+- Banner uses `text` instead of `content` -- legacy, use `content` for new blocks
+- Stats repeater uses `number`/`label`/`prefix`/`suffix` -- acceptable, domain-specific
+- Pricing repeater uses `price`/`period`/`features` -- acceptable, domain-specific
 
 ## Creating a New Block
 
@@ -115,7 +122,7 @@ The `devq_filtername()` function processes the name:
 - Converts to lowercase
 - Removes spaces and hyphens
 - Result becomes the folder name and ACF identifier
-- Example: `"Your New Block"` → folder `yournewblock`, ACF block `acf/yournewblock`
+- Example: `"Your New Block"` -> folder `yournewblock`, ACF block `acf/yournewblock`
 
 ### Step 2: Create the Block Folder and code.php
 
@@ -216,9 +223,9 @@ output_block_spacing_css($margin_top, $margin_bottom, $margin_top_other, $margin
 
 Create `acfjson/group_[blockname]_block.json`. Every block MUST have 3 tabs:
 
-1. **Content** — Block-specific fields
-2. **Options** — Margin Top, Margin Top Other, Margin Bottom, Margin Bottom Other, Custom Class, Custom ID
-3. **Animation** — Animation Type (select), Animation Duration (number), Disable Animation (true/false)
+1. **Content** -- Block-specific fields
+2. **Options** -- Margin Top, Margin Top Other, Margin Bottom, Margin Bottom Other, Custom Class, Custom ID
+3. **Animation** -- Animation Type (select), Animation Duration (number), Disable Animation (true/false)
 
 Use `blocks/image/code.php` and `acfjson/group_image_block.json` as the reference implementation.
 
@@ -236,12 +243,12 @@ All field keys must be prefixed with the block name to avoid collisions:
 
 | Field | Type | Width | Choices | Conditional |
 |-------|------|-------|---------|------------|
-| Margin Top | select | 50% | none/small/medium/large/other | — |
+| Margin Top | select | 50% | none/small/medium/large/other | -- |
 | Margin Top Other | number | 50% | append: "px", min: 0 | margin_top == other |
-| Margin Bottom | select | 50% | none/small/medium/large/other | — |
+| Margin Bottom | select | 50% | none/small/medium/large/other | -- |
 | Margin Bottom Other | number | 50% | append: "px", min: 0 | margin_bottom == other |
-| Custom Class | text | 50% | prepend: "." | — |
-| Custom ID | text | 50% | prepend: "#" | — |
+| Custom Class | text | 50% | prepend: "." | -- |
+| Custom ID | text | 50% | prepend: "#" | -- |
 
 #### Animation Tab Fields (copy exactly)
 
@@ -346,16 +353,16 @@ Use the `.btn` class system for all buttons. Do NOT use `.btn-inline`.
 
 Always loaded:
 - **jQuery** (WordPress bundled)
-- **AOS** — Scroll animations (initialized in footer)
-- **Mobile Menu** — Custom vanilla JS (`assets/js/mobile-menu.js`)
+- **AOS** -- Scroll animations (initialized in footer)
+- **Mobile Menu** -- Custom vanilla JS (`assets/js/mobile-menu.js`)
 
 Conditionally loaded (auto-detected from page content):
-- **Slick** — Carousel/slider (loaded when Hero Slider or Testimonials blocks present)
-- **BeefUp** — Accordion (loaded when FAQ block present)
-- **Magnific Popup** — Lightbox/modal (loaded when Gallery block present)
+- **Slick** -- Carousel/slider (loaded when Hero Slider or Testimonials blocks present)
+- **BeefUp** -- Accordion (loaded when FAQ block present)
+- **Magnific Popup** -- Lightbox/modal (loaded when Gallery block present)
 
 Available but commented out in `functions/scripts.php` (uncomment when needed):
-- **jQuery Validate** — Form validation
+- **jQuery Validate** -- Form validation
 
 ## Repeater Field Pattern
 
@@ -393,170 +400,27 @@ All blocks register under the `devq` category. The block slug is `acf/[filteredn
 ## Spacing System
 
 The spacing system is centralized in `functions/spacing.php`:
-- `generate_unique_block_id($type)` — Creates a unique ID for each block instance
-- `output_block_spacing_css($top, $bottom, $top_other, $bottom_other, $id)` — Outputs responsive `<style>` tag
-- Desktop values: Small (20px), Medium (40px), Large (80px) — configurable in Theme Settings
-- Mobile values: Small (15px), Medium (25px), Large (40px) — auto-applied at 767px
-
-## Available Blocks (30 total)
-
-### Heroes
-| Block | Slug | Description |
-|-------|------|-------------|
-| Hero | `acf/hero` | Full-width hero with background image/gradient/solid, overlay, CTAs. Layout tab: alignment, width, height, vertical position, scroll indicator |
-| Hero Split | `acf/herosplit` | Two-column hero: text + image, position toggle |
-| Hero Video | `acf/herovideo` | Background video hero (YouTube/upload) with overlay, fallback image for mobile, Layout tab |
-| Hero Slider | `acf/heroslider` | Multi-slide hero carousel using Slick, per-slide bg/overlay/content, Layout tab with slider options |
-| Hero Fullscreen | `acf/herofullscreen` | Always 100vh hero with animated scroll indicator, Layout tab |
-
-### Content
-| Block | Slug | Description |
-|-------|------|-------------|
-| Text Image | `acf/textimage` | Two-column text + image with position toggle |
-| Content | `acf/content` | Rich text content with width options (narrow/default/wide) |
-| About | `acf/about` | Company intro with image, text, optional stat boxes |
-| Blog Posts | `acf/blogposts` | Dynamic post grid via WP_Query, category filter, 2/3/4 columns |
-| Tabs | `acf/tabs` | Tabbed content (horizontal/vertical), accordion on mobile |
-
-### Cards & Grids
-| Block | Slug | Description |
-|-------|------|-------------|
-| Cards | `acf/cards` | Icon/image cards in 2/3/4 columns with hover lift |
-| Team | `acf/team` | Team member cards with photo, role, social links |
-| Pricing | `acf/pricing` | Pricing tier cards with featured highlight |
-| Comparison Table | `acf/comparisontable` | Feature comparison matrix with highlighted columns |
-
-### Social Proof
-| Block | Slug | Description |
-|-------|------|-------------|
-| Testimonials | `acf/testimonials` | Quote cards with carousel or grid mode |
-| Logo Bar | `acf/logobar` | Client/partner logos, grayscale option |
-| Stats | `acf/stats` | Animated counter numbers with light/dark/primary bg |
-| Marquee | `acf/marquee` | Infinite scrolling text or logos, CSS animation |
-
-### Media
-| Block | Slug | Description |
-|-------|------|-------------|
-| Image | `acf/image` | Full/contained image with mobile swap option |
-| Gallery | `acf/gallery` | Filterable image grid with lightbox |
-| Video | `acf/video` | YouTube/Vimeo embed with thumbnail play button |
-| Map | `acf/map` | Map iframe embed, contained or full-width |
-| Before/After | `acf/beforeafter` | Draggable image comparison slider |
-
-### Conversion
-| Block | Slug | Description |
-|-------|------|-------------|
-| Banner | `acf/banner` | Thin announcement/promo strip, dismissible |
-| CTA | `acf/cta` | Full-width accent section with heading + button |
-| Contact Split | `acf/contactsplit` | Two-column: contact info + form embed |
-
-### Lists
-| Block | Slug | Description |
-|-------|------|-------------|
-| FAQ | `acf/faq` | Accordion FAQ using BeefUp |
-| Process | `acf/process` | Numbered steps with icons |
-| Features List | `acf/featureslist` | Two-column icon + text feature items |
-| Timeline | `acf/timeline` | Alternating vertical timeline for milestones |
-
-## Child Theme Blocks
-
-Child themes can override existing blocks and register new ones without modifying the parent theme.
-
-### Override Precedence
-
-| Asset | Resolution | Mechanism |
-|-------|-----------|-----------|
-| `code.php` | Child theme first | ACF's `locate_template()` fallback |
-| `style.css` | Child theme first | `register_acf_block_types()` checks `get_stylesheet_directory()` before `get_template_directory()` |
-| `script.js` | Child theme first | Same as style.css |
-| ACF JSON | Child theme first | `acf/settings/load_json` in `functions/acf.php` |
-
-### Adding a New Block from a Child Theme
-
-1. Add the block name via the `devq_blocks` filter in the child theme's `functions.php`:
-   ```php
-   add_filter('devq_blocks', function ($blocks) {
-       $blocks[] = 'My Custom Block';
-       return $blocks;
-   });
-   ```
-2. Create `blocks/mycustomblock/code.php` in the child theme
-3. Create `acfjson/group_mycustomblock_block.json` in the child theme
-4. Optionally add `blocks/mycustomblock/style.css` and/or `script.js`
-
-The block is automatically allowed in the editor — `devq_allowed_block_types()` calls `devq_get_blocks()`, which applies the filter.
-
-### Overriding an Existing Block
-
-- **Template:** Copy the parent's `blocks/[name]/code.php` to the same path in the child theme. No filter needed.
-- **Styles:** Copy `blocks/[name]/style.css` to the child theme. The child version replaces (not supplements) the parent's.
-- **Scripts:** Copy `blocks/[name]/script.js` to the child theme. Same behavior as styles.
-
-### Removing a Parent Block
-
-```php
-add_filter('devq_blocks', function ($blocks) {
-    return array_diff($blocks, array('Marquee', 'Timeline'));
-});
-```
+- `generate_unique_block_id($type)` -- Creates a unique ID for each block instance
+- `output_block_spacing_css($top, $bottom, $top_other, $bottom_other, $id)` -- Outputs responsive `<style>` tag
+- Desktop values: Small (20px), Medium (40px), Large (80px) -- configurable in Theme Settings
+- Mobile values: Small (15px), Medium (25px), Large (40px) -- auto-applied at 767px
 
 ## New Site Setup
 
-When asked to set up a new client site, follow this two-phase sequence:
-
-### Phase 1 — Bootstrap (before theme is active)
-
-1. **Read config:** `~/.devq/config.json` — contains plugin zip paths, license keys, and default page list.
-
-2. **Install plugins:**
+1. Clone the kit into the site's themes directory and rename it to the client slug:
    ```bash
-   wp plugin install "{acf_zip_path}" --activate
-   wp plugin install "{gf_zip_path}" --activate
-   wp plugin install wordpress-seo --activate
+   git clone https://github.com/Jyager31/devq-starter-kit.git {client-slug}
+   rm -rf {client-slug}/.git
    ```
+2. Set `Theme Name:` in `style.css` to the client name. Leave the `DevQ Kit:` line.
+3. Install plugins. On Local for Windows, `wp plugin install <zip>` does not work -- unzip into
+   `wp-content/plugins/` directly, then `wp plugin activate`.
+4. Activate the theme.
+5. Fill in Theme Settings (branding, contact, social, styles).
+6. Write `header.php` and `footer.php` to the site's design.
+7. Build the site's blocks. One block per section, designed for this site.
 
-3. **Activate licenses:**
-   ```bash
-   # ACF Pro
-   wp eval 'update_option("acf_pro_license", "{acf_license_key}");'
-
-   # Gravity Forms
-   wp eval 'GFFormsModel::save_key("{gf_license_key}");'
-   ```
-
-4. **Bootstrap theme + child theme:**
-   ```bash
-   wp eval-file "wp-content/themes/devq-starter/scripts/bootstrap.php" "Client Name"
-   ```
-   This copies `devq-starter-child/` → `clientname-child/`, replaces "Client Name" in `style.css`, and activates the child theme.
-
-### Phase 2 — Content scaffold (requires active theme)
-
-5. **Scaffold content:**
-   ```bash
-   wp eval-file "wp-content/themes/devq-starter/scripts/setup-site.php"
-   ```
-   This creates pages from presets, sets Home as front page, builds the Primary Menu, deletes default content (Sample Page, Hello world!), and sets permalinks to `/%postname%/`.
-
-   To use custom pages: `wp eval-file "...setup-site.php" home about services contact landing`
-
-### Verification
-
-6. **Verify everything worked:**
-   ```bash
-   wp theme status
-   wp plugin list
-   wp post list --post_type=page --fields=ID,post_title,post_status
-   wp option get page_on_front
-   wp menu list
-   ```
-
-### Important Notes
-
-- `~/.devq/config.json` is machine-level config (secrets stay out of git)
-- `scripts/bootstrap.php` is standalone — no theme dependency
-- `scripts/setup-site.php` requires the theme to be active (uses `devq_create_page()`)
-- Available presets: `home`, `about`, `contact`, `services`, `landing`
+There is no bootstrap script and no child theme step.
 
 ## Programmatic Page Creation
 
@@ -588,35 +452,11 @@ $post_id = devq_create_page(array(
 ));
 ```
 
-### Using Presets
-
-Presets define common page layouts with empty placeholder fields:
-
-```php
-// Get all presets
-$presets = devq_get_page_presets();
-
-// Create a page from a preset
-$post_id = devq_create_page(array(
-    'title' => 'Home',
-    'status' => 'publish',
-    'blocks' => $presets['home'],
-));
-```
-
-Available presets: `home`, `about`, `contact`, `services`, `landing`
-
 ### WP-CLI Commands
 
 ```bash
-# Create a single page with preset
-wp devq create-page --title="About" --preset=about --status=draft
-
 # Bulk create from JSON file
 wp devq bulk-create --file=pages.json
-
-# List available presets
-wp devq list-presets
 
 # List registered blocks
 wp devq list-blocks
@@ -628,12 +468,14 @@ wp devq list-blocks
 curl -X POST http://localhost/wp-json/devq/v1/create-page \
   -H "Content-Type: application/json" \
   -u "admin:password" \
-  -d '{"title":"About","preset":"about","status":"draft"}'
+  -d '{"title":"About","status":"draft","blocks":[]}'
 ```
 
-### Bulk Page Creation Workflow
+### Notes
 
-1. Create pages from presets: `wp devq create-page --title="Home" --preset=home --status=publish`
-2. Or run the setup script: `wp eval-file "wp-content/themes/devq-starter/scripts/setup-site.php"`
-3. Edit pages in WP admin to fill in real content
-4. See the "New Site Setup" section above for the full orchestration workflow
+- Block data lives in the `post_content` Gutenberg block comment, **not** post meta. That
+  comment is authoritative for both the front end and the editor.
+- Pass block field values under the `fields` key, not `data`:
+  `array('name' => 'Proof Cards', 'fields' => array('heading' => '...'))`.
+- Repeaters are flattened for you into ACF's `name`, `name_0_sub`, `_name_0_sub` shape. Verify
+  a new block round-trips before building 20 pages on it.

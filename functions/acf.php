@@ -15,13 +15,11 @@
  */
 
 // Set custom save path for ACF JSON files
-add_filter('acf/settings/save_json', 'my_acf_json_save_point');
-function my_acf_json_save_point($path)
+add_filter('acf/settings/save_json', 'devq_acf_json_save_point');
+function devq_acf_json_save_point($path)
 {
-    // Save to theme's acfjson directory
-    $path = get_stylesheet_directory() . '/acfjson';
+    $path = get_template_directory() . '/acfjson';
 
-    // Debug: Ensure directory exists
     if (!file_exists($path)) {
         wp_mkdir_p($path);
     }
@@ -30,28 +28,19 @@ function my_acf_json_save_point($path)
 }
 
 // Set custom load path for ACF JSON files
-add_filter('acf/settings/load_json', 'my_acf_json_load_point');
-function my_acf_json_load_point($paths)
+add_filter('acf/settings/load_json', 'devq_acf_json_load_point');
+function devq_acf_json_load_point($paths)
 {
-    // Remove original path (optional)
-    unset($paths[0]);
-
-    // Add parent theme's acfjson directory
-    $paths[] = get_template_directory() . '/acfjson';
-
-    // Also load from child theme if active
-    if (get_stylesheet_directory() !== get_template_directory()) {
-        $paths[] = get_stylesheet_directory() . '/acfjson';
-    }
-
-    return $paths;
+    // This theme owns its field groups outright; drop ACF's defaults so a
+    // stray acf-json/ elsewhere can never shadow acfjson/.
+    return array(get_template_directory() . '/acfjson');
 }
 
 // Debug function to check if Local JSON is working (only when WP_DEBUG is enabled)
 if (defined('WP_DEBUG') && WP_DEBUG) {
-    add_action('admin_notices', 'acf_local_json_debug');
+    add_action('admin_notices', 'devq_acf_local_json_debug');
 }
-function acf_local_json_debug()
+function devq_acf_local_json_debug()
 {
     // Only show to administrators and only on ACF pages
     if (!current_user_can('manage_options') || !function_exists('acf_get_field_groups')) {
@@ -79,8 +68,8 @@ function acf_local_json_debug()
  * Theme Settings Options Pages
  */
 
-add_action('acf/init', 'my_acf_op_init');
-function my_acf_op_init()
+add_action('acf/init', 'devq_acf_op_init');
+function devq_acf_op_init()
 {
     // Check function exists.
     if (function_exists('acf_add_options_sub_page')) {
@@ -157,7 +146,7 @@ function my_acf_op_init()
 
 
 
-function my_acf_admin_head()
+function devq_acf_admin_head()
 {
 ?>
     <style type="text/css">
@@ -214,4 +203,4 @@ function my_acf_admin_head()
 <?php
 }
 
-add_action('acf/input/admin_head', 'my_acf_admin_head');
+add_action('acf/input/admin_head', 'devq_acf_admin_head');

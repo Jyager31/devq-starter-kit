@@ -1,5 +1,8 @@
 <?php
-class fluent_themes_custom_walker_nav_menu extends Walker_Nav_Menu
+
+if (!class_exists('devq_nav_walker')) :
+
+class devq_nav_walker extends Walker_Nav_Menu
 {
 
     private $blog_sidebar_pos = "";
@@ -26,12 +29,22 @@ class fluent_themes_custom_walker_nav_menu extends Walker_Nav_Menu
     function start_el(&$output, $item, $depth = 0, $args = array(), $id = 0)
     {
         global $wp_query;
+
+        // WordPress passes an array on some fallback paths and an stdClass on the
+        // normal one; everything below uses object syntax.
+        $args = (object) $args;
+        foreach (array('before', 'after', 'link_before', 'link_after') as $devq_key) {
+            if (!isset($args->$devq_key)) {
+                $args->$devq_key = '';
+            }
+        }
+
         $indent = ($depth > 0 ? str_repeat("\t", $depth) : ''); // code indent
 
         // passed classes
         $classes = empty($item->classes) ? array() : (array) $item->classes;
 
-        // WordPress adds 'menu-item-has-children' automatically — no DB query needed
+        // WordPress adds 'menu-item-has-children' automatically -- no DB query needed
         $has_children = in_array('menu-item-has-children', $classes);
 
         // depth dependent classes
@@ -80,6 +93,8 @@ class fluent_themes_custom_walker_nav_menu extends Walker_Nav_Menu
         $output .= apply_filters('walker_nav_menu_start_el', $item_output, $item, $depth, $args, $id);
     }
 } //End Walker_Nav_Menu
+
+endif;
 
 
 /**

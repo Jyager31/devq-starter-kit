@@ -32,6 +32,14 @@ function devq_allowed_block_types($allowed_block_types, $editor_context)
         foreach (devq_get_blocks() as $name) {
             $allowed[] = 'acf/' . devq_filtername($name);
         }
+
+        // A fresh scaffold has no blocks yet. Returning an empty array here
+        // tells WordPress "allow nothing" and leaves the page editor unusable,
+        // so fall through to the full block list until this site has its own.
+        if (empty($allowed)) {
+            return true;
+        }
+
         return $allowed;
     }
     return true;
@@ -50,38 +58,18 @@ function devq_filtername($name)
 
 function devq_get_blocks()
 {
-    $blocks = array(
-        "Image",
-        "Content",
-        "Hero",
-        "Hero Split",
-        "Hero Video",
-        "Hero Slider",
-        "Hero Fullscreen",
-        "Text Image",
-        "About",
-        "Cards",
-        "Team",
-        "Pricing",
-        "Testimonials",
-        "Logo Bar",
-        "Stats",
-        "Gallery",
-        "Video",
-        "CTA",
-        "Contact Split",
-        "FAQ",
-        "Process",
-        "Features List",
-        "Banner",
-        "Blog Posts",
-        "Tabs",
-        "Marquee",
-        "Map",
-        "Timeline",
-        "Comparison Table",
-        "Before After",
-    );
+    // Deliberately empty. Every site builds its own blocks and registers them
+    // through the devq_blocks filter:
+    //
+    //     add_filter('devq_blocks', function ($blocks) {
+    //         $blocks[] = 'Hero Banner';
+    //         return $blocks;
+    //     });
+    //
+    // The 30 blocks this theme used to ship live in the toolkit at
+    // Commands/block-builder/_library/ and are for post-launch use only --
+    // never as a starting point for a new build.
+    $blocks = array();
 
     return apply_filters('devq_blocks', $blocks);
 }
@@ -95,11 +83,8 @@ function register_acf_block_types()
 
     $basefunctions = devq_get_blocks();
 
-    $parent_path = get_template_directory();
-    $parent_uri  = get_template_directory_uri();
-    $child_path  = get_stylesheet_directory();
-    $child_uri   = get_stylesheet_directory_uri();
-    $has_child   = ($child_path !== $parent_path);
+    $theme_path = get_template_directory();
+    $theme_uri  = get_template_directory_uri();
 
     foreach ($basefunctions as $name) {
         $filteredname = devq_filtername($name);
@@ -108,9 +93,6 @@ function register_acf_block_types()
         $args = array(
             'name'              => $filteredname,
             'title'             => __($name, 'devq'),
-            // ACF uses locate_template() for render_template, which checks
-            // the child theme first — so child themes can override code.php
-            // by placing blocks/[name]/code.php in their theme directory.
             'render_template'   => 'blocks/' . $filteredname . '/code.php',
             'category'          => 'devq',
             'icon'              => $icon,
@@ -131,18 +113,12 @@ function register_acf_block_types()
             )
         );
 
-        // Child-theme-first asset resolution for style.css
-        if ($has_child && file_exists($child_path . $block_rel . "/style.css")) {
-            $args['enqueue_style'] = $child_uri . $block_rel . "/style.css";
-        } elseif (file_exists($parent_path . $block_rel . "/style.css")) {
-            $args['enqueue_style'] = $parent_uri . $block_rel . "/style.css";
+        if (file_exists($theme_path . $block_rel . "/style.css")) {
+            $args['enqueue_style'] = $theme_uri . $block_rel . "/style.css";
         }
 
-        // Child-theme-first asset resolution for script.js
-        if ($has_child && file_exists($child_path . $block_rel . "/script.js")) {
-            $args['enqueue_script'] = $child_uri . $block_rel . "/script.js";
-        } elseif (file_exists($parent_path . $block_rel . "/script.js")) {
-            $args['enqueue_script'] = $parent_uri . $block_rel . "/script.js";
+        if (file_exists($theme_path . $block_rel . "/script.js")) {
+            $args['enqueue_script'] = $theme_uri . $block_rel . "/script.js";
         }
 
         acf_register_block_type($args);
@@ -154,3 +130,31 @@ function register_acf_block_types()
 if (function_exists('acf_register_block_type')) {
     add_action('acf/init', 'register_acf_block_types');
 }
+
+
+/**
+ * Version per-block assets by file mtime.
+ *
+ * ACF enqueues blocks/<name>/style.css and script.js with ver = ACF_VERSION,
+ * which never changes when you edit the file -- so an edit serves stale forever
+ * behind a far-future cache header. Stamp the real mtime instead.
+ */
+function devq_version_block_asset($src)
+{
+    $theme_uri = get_template_directory_uri();
+
+    if (strpos($src, $theme_uri . '/blocks/') === false) {
+        return $src;
+    }
+
+    $clean = strtok($src, '?');
+    $path  = get_template_directory() . substr($clean, strlen($theme_uri));
+
+    if (!file_exists($path)) {
+        return $src;
+    }
+
+    return add_query_arg('ver', filemtime($path), $clean);
+}
+add_filter('style_loader_src', 'devq_version_block_asset', 20);
+add_filter('script_loader_src', 'devq_version_block_asset', 20);

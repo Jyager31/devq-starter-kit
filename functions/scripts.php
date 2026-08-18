@@ -76,7 +76,7 @@ function devqbase_scripts()
   // AOS Animation Library (used by nearly all blocks)
   wp_enqueue_script('aos', $theme_uri . '/assets/js/aos.js', array('jquery'), '', true);
 
-  // Custom theme JS (required — init code checks for library existence before calling)
+  // Custom theme JS (required -- init code checks for library existence before calling)
   wp_enqueue_script('devq-custom', $theme_uri . '/assets/js/custom.js', array('jquery'), filemtime($theme_dir . '/assets/js/custom.js'), true);
 
   // --- Conditionally loaded JS (auto-detected from page blocks) ---

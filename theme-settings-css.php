@@ -63,9 +63,6 @@ $google_tag_manager = get_field('scripts_google_tag_manager', 'option');
 $facebook_pixel = get_field('scripts_facebook_pixel', 'option');
 
 // Layout style settings
-$layout_header_style = get_field('layout_header_style', 'option') ?: 'standard';
-$layout_mobile_menu_style = get_field('layout_mobile_menu_style', 'option') ?: 'fullscreen';
-$layout_footer_style = get_field('layout_footer_style', 'option') ?: 'minimal';
 $layout_archive_style = get_field('layout_archive_style', 'option') ?: 'grid';
 $layout_single_style = get_field('layout_single_style', 'option') ?: 'classic';
 

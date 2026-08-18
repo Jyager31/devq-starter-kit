@@ -20,6 +20,7 @@ if (!function_exists('devqbase_setup')) :
 		// This theme uses wp_nav_menu() in one location.
 		register_nav_menus(array(
 			'primary' => esc_html__('Primary', 'devq'),
+			'footer'  => esc_html__('Footer', 'devq'),
 		));
 
 		add_theme_support('html5', array(
@@ -64,10 +65,7 @@ require get_template_directory() . '/functions/shortcodes.php';
 require get_template_directory() . '/functions/navwalker.php';
 require get_template_directory() . '/functions/emailnotifications.php';
 require get_template_directory() . '/functions/page-builder.php';
-require get_template_directory() . '/functions/page-presets.php';
 require get_template_directory() . '/functions/animations.php';
-require get_template_directory() . '/functions/theme-disconnect.php';
-require get_template_directory() . '/functions/theme-updater.php';
 
 
 function is_blog()
@@ -128,3 +126,18 @@ add_action('init', function () {
 		remove_action('admin_bar_menu', 'wp_admin_bar_comments_menu', 60);
 	}
 });
+
+
+/**
+ * Site blocks.
+ *
+ * Every block this site uses is built for this site and registered here.
+ * blocks/ ships empty on purpose -- never start a build from a premade block.
+ * The old 30-block library lives in the toolkit at
+ * Commands/block-builder/_library/ and is for post-launch use only.
+ *
+ * add_filter('devq_blocks', function ($blocks) {
+ *     $blocks[] = 'Hero Banner';   // folder: blocks/herobanner/
+ *     return $blocks;
+ * });
+ */

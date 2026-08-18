@@ -51,23 +51,37 @@ $parent_theme = $active_theme->parent();
 $is_child = (bool) $parent_theme;
 $devq_theme = $is_child ? $parent_theme : $active_theme;
 
-if (strpos(strtolower($devq_theme->get('Name')), 'devq') !== false) {
-    health_pass("DevQ Starter theme active (v{$devq_theme->get('Version')})");
+// A scaffolded site renames the theme to the client, so identify the kit by its
+// own marker rather than by name.
+$devq_kit_stamp = $devq_theme->get('DevQ Kit');
+if ($devq_kit_stamp || strpos(strtolower($devq_theme->get('Name')), 'devq') !== false) {
+    health_pass("DevQ kit theme active: {$devq_theme->get('Name')} (v{$devq_theme->get('Version')})"
+        . ($devq_kit_stamp ? " from kit {$devq_kit_stamp}" : ''));
 } else {
-    health_fail('DevQ Starter theme is not active');
+    health_fail('Active theme does not look like a DevQ kit theme');
 }
 
+// One theme per site is the intended shape now. A child theme means this site
+// predates the kit, or someone reintroduced the split.
 if ($is_child) {
-    health_pass("Child theme active: {$active_theme->get('Name')}");
+    health_warn("Child theme active ({$active_theme->get('Name')}) -- the kit expects a single theme");
 } else {
-    health_warn('No child theme — customizations should use a child theme');
+    health_pass('Single theme, no child');
 }
 
-// Check if theme updater can reach GitHub
-if (class_exists('Puc_v4_Factory') || class_exists('YahnisElsts\\PluginUpdateChecker\\v5\\PucFactory')) {
-    health_pass('Theme update checker loaded');
+// The kit deliberately ships no auto-updater; it is consumed by git clone.
+if (class_exists('Puc_v4_Factory') || class_exists('YahnisElsts\PluginUpdateChecker\v5\PucFactory')) {
+    health_warn('Theme update checker present -- the kit ships without one; a release could clobber this site');
 } else {
-    health_warn('Theme update checker not detected — auto-updates may not work');
+    health_pass('No auto-updater (expected)');
+}
+
+// blocks/ should contain only blocks built for this site.
+$devq_block_names = function_exists('devq_get_blocks') ? devq_get_blocks() : array();
+if (empty($devq_block_names)) {
+    health_warn('No blocks registered yet -- add them via the devq_blocks filter');
+} else {
+    health_pass(count($devq_block_names) . ' site block(s) registered: ' . implode(', ', $devq_block_names));
 }
 
 WP_CLI::log('');
@@ -107,7 +121,7 @@ if (function_exists('acf_pro_get_license_key')) {
     if ($license) {
         health_pass('ACF Pro license key set');
     } else {
-        health_warn('ACF Pro license key not set — updates may not work');
+        health_warn('ACF Pro license key not set -- updates may not work');
     }
 }
 
@@ -143,12 +157,12 @@ if (function_exists('acf_get_field_groups')) {
             $json_modified = !empty($group['modified']) ? $group['modified'] : 0;
             // If the group has local JSON but also exists in DB with different modified time
             if (!empty($group['ID']) && $group['ID'] > 0) {
-                // Group exists in both DB and JSON — might need sync
+                // Group exists in both DB and JSON -- might need sync
             }
         }
     }
 } else {
-    health_fail('ACF not loaded — cannot check field groups');
+    health_fail('ACF not loaded -- cannot check field groups');
 }
 
 // Check acfjson directory
@@ -213,7 +227,7 @@ if (function_exists('get_field')) {
     if ($primary && $primary !== '#007bff') {
         health_pass("Primary color customized: {$primary}");
     } else {
-        health_warn('Primary color is still default (#007bff) — update in Theme Settings > Styles');
+        health_warn('Primary color is still default (#007bff) -- update in Theme Settings > Styles');
     }
 
     if ($secondary && $secondary !== '#6c757d') {
@@ -227,7 +241,7 @@ if (function_exists('get_field')) {
     if ($font_embed) {
         health_pass('Custom font embed code set');
     } else {
-        health_warn('No font embed code — using system defaults');
+        health_warn('No font embed code -- using system defaults');
     }
 
     // Scripts
@@ -239,7 +253,7 @@ if (function_exists('get_field')) {
         health_warn('No analytics configured (GA/GTM)');
     }
 } else {
-    health_fail('get_field() not available — ACF not loaded');
+    health_fail('get_field() not available -- ACF not loaded');
 }
 
 WP_CLI::log('');
@@ -260,7 +274,7 @@ if ($show_on_front === 'page' && $front_page_id) {
         health_fail("Front page ID {$front_page_id} does not exist");
     }
 } else {
-    health_warn('No static front page set — showing latest posts');
+    health_warn('No static front page set -- showing latest posts');
 }
 
 // Check published pages
@@ -346,7 +360,7 @@ if ($permalink_structure === '/%postname%/') {
 } elseif (!empty($permalink_structure)) {
     health_warn("Permalinks set to: {$permalink_structure} (expected /%postname%/)");
 } else {
-    health_fail('Permalinks using default (plain) — SEO unfriendly');
+    health_fail('Permalinks using default (plain) -- SEO unfriendly');
 }
 
 // Check site visibility

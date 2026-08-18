@@ -184,7 +184,7 @@ function devq_save_block_meta($post_id, $block_id, $fields, $block_name) {
 
             if ($json && isset($json['fields'])) {
                 foreach ($json['fields'] as $field) {
-                    if ($field['name'] === $name && $field['type'] === 'repeater') {
+                    if (isset($field['name'], $field['type']) && $field['name'] === $name && $field['type'] === 'repeater') {
                         $is_repeater = true;
                         break;
                     }
@@ -379,17 +379,6 @@ function devq_rest_create_page($request) {
         return new WP_REST_Response(array('error' => 'Invalid JSON body'), 400);
     }
 
-    // Support preset-based creation
-    if (!empty($params['preset'])) {
-        $presets = devq_get_page_presets();
-        if (!isset($presets[$params['preset']])) {
-            return new WP_REST_Response(array('error' => 'Unknown preset: ' . $params['preset']), 400);
-        }
-        if (empty($params['blocks'])) {
-            $params['blocks'] = $presets[$params['preset']];
-        }
-    }
-
     $result = devq_create_page($params);
 
     if (is_wp_error($result)) {
@@ -407,8 +396,8 @@ function devq_rest_create_page($request) {
  * REST API callback for creating a navigation menu from page IDs.
  *
  * Expects JSON body:
- * - menu_name (string, optional) — defaults to "Primary Menu"
- * - page_ids (array of int) — ordered list of page IDs for menu items
+ * - menu_name (string, optional) -- defaults to "Primary Menu"
+ * - page_ids (array of int) -- ordered list of page IDs for menu items
  *
  * @param WP_REST_Request $request
  * @return WP_REST_Response
@@ -473,7 +462,7 @@ function devq_rest_create_menu($request) {
  * REST API callback for setting a page as the static front page.
  *
  * Expects JSON body:
- * - page_id (int) — the page ID to set as front page
+ * - page_id (int) -- the page ID to set as front page
  *
  * @param WP_REST_Request $request
  * @return WP_REST_Response
@@ -503,7 +492,7 @@ function devq_rest_setup_front_page($request) {
 }
 
 /**
- * REST API callback for site info — returns site URL, active theme, available blocks, and presets.
+ * REST API callback for site info -- returns site URL, active theme and available blocks.
  *
  * @param WP_REST_Request $request
  * @return WP_REST_Response
@@ -514,103 +503,11 @@ function devq_rest_site_info($request) {
         $blocks = devq_get_blocks();
     }
 
-    $presets = array();
-    if (function_exists('devq_get_page_presets')) {
-        $presets = array_keys(devq_get_page_presets());
-    }
 
     return new WP_REST_Response(array(
         'site_url' => get_site_url(),
         'theme' => get_stylesheet(),
         'parent_theme' => get_template(),
         'blocks' => $blocks,
-        'presets' => $presets,
     ), 200);
-}
-
-/**
- * Admin page for Block Library generation.
- */
-function devq_block_library_admin_menu() {
-    add_submenu_page(
-        'themes.php',
-        'Block Library',
-        'Block Library',
-        'edit_pages',
-        'devq-block-library',
-        'devq_block_library_admin_page'
-    );
-}
-add_action('admin_menu', 'devq_block_library_admin_menu');
-
-/**
- * Handle Block Library admin page and generation.
- */
-function devq_block_library_admin_page() {
-    $message = '';
-    $message_type = '';
-
-    if (isset($_POST['devq_generate_block_library']) && check_admin_referer('devq_generate_block_library_nonce')) {
-        $script_path = get_template_directory() . '/scripts/create-block-library.php';
-        if (file_exists($script_path)) {
-            ob_start();
-            include $script_path;
-            $output = ob_get_clean();
-            $message = 'Block Library page generated successfully! <a href="' . esc_url(get_permalink(get_page_by_path('block-library'))) . '" target="_blank">View page</a>';
-            $message_type = 'success';
-        } else {
-            $message = 'Error: create-block-library.php script not found.';
-            $message_type = 'error';
-        }
-    }
-
-    if (isset($_POST['devq_delete_block_library']) && check_admin_referer('devq_delete_block_library_nonce')) {
-        $page = get_page_by_path('block-library');
-        if ($page) {
-            wp_delete_post($page->ID, true);
-            $message = 'Block Library page deleted.';
-            $message_type = 'success';
-        } else {
-            $message = 'No Block Library page found to delete.';
-            $message_type = 'warning';
-        }
-    }
-
-    $existing = get_page_by_path('block-library');
-    ?>
-    <div class="wrap">
-        <h1>DevQ Block Library</h1>
-
-        <?php if ($message) : ?>
-            <div class="notice notice-<?php echo esc_attr($message_type); ?> is-dismissible">
-                <p><?php echo wp_kses_post($message); ?></p>
-            </div>
-        <?php endif; ?>
-
-        <div class="card" style="max-width:600px;">
-            <h2>Generate Block Library</h2>
-            <p>Creates a showcase page with every block filled with demo content. The page is <strong>noindexed</strong> automatically so it won't appear in search results.</p>
-
-            <?php if ($existing) : ?>
-                <p style="color:#2271b1;"><strong>Block Library page exists.</strong>
-                    <a href="<?php echo esc_url(get_permalink($existing)); ?>" target="_blank">View</a> |
-                    <a href="<?php echo esc_url(get_edit_post_link($existing)); ?>">Edit</a>
-                </p>
-                <form method="post" style="display:inline-flex;gap:10px;">
-                    <?php wp_nonce_field('devq_generate_block_library_nonce'); ?>
-                    <input type="submit" name="devq_generate_block_library" class="button button-primary" value="Regenerate Block Library" onclick="return confirm('This will delete and recreate the Block Library page. Continue?');">
-                </form>
-                <form method="post" style="display:inline-flex;gap:10px;margin-left:10px;">
-                    <?php wp_nonce_field('devq_delete_block_library_nonce'); ?>
-                    <input type="submit" name="devq_delete_block_library" class="button" value="Delete Block Library" onclick="return confirm('Delete the Block Library page?');">
-                </form>
-            <?php else : ?>
-                <form method="post">
-                    <?php wp_nonce_field('devq_generate_block_library_nonce'); ?>
-                    <input type="submit" name="devq_generate_block_library" class="button button-primary" value="Generate Block Library">
-                </form>
-            <?php endif; ?>
-        </div>
-    </div>
-    <?php
 }

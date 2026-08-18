@@ -15,7 +15,7 @@ This directory enables automatic synchronization of ACF field groups using ACF's
 ### Creating/Editing Field Groups
 
 1. Create or edit field groups in WordPress admin
-2. Save the field group — ACF automatically creates/updates JSON here
+2. Save the field group -- ACF automatically creates/updates JSON here
 3. Commit JSON files to version control
 
 ### Adding AI-Created Blocks
@@ -30,16 +30,16 @@ This directory enables automatic synchronization of ACF field groups using ACF's
 - Files are named `group_[identifier].json`
 - Block field groups: `group_[blockname]_block.json`
 - Theme settings: `group_theme_styles.json`
-- Do not rename files — ACF uses the internal `key` field to identify groups
+- Do not rename files -- ACF uses the internal `key` field to identify groups
 
 ## Current Files
 
-- `group_image_block.json` — Image block fields (Content, Options, Animation tabs)
-- `group_content_block.json` — Content block fields (Content, Options, Animation tabs)
-- `group_theme_styles.json` — Theme settings fields
+- `group_image_block.json` -- Image block fields (Content, Options, Animation tabs)
+- `group_content_block.json` -- Content block fields (Content, Options, Animation tabs)
+- `group_theme_styles.json` -- Theme settings fields
 
 ## Important Notes
 
-- Do not delete JSON files manually — use WordPress admin to delete field groups
+- Do not delete JSON files manually -- use WordPress admin to delete field groups
 - All block field groups must include Content, Options, and Animation tabs
 - See `CLAUDE.md` at the theme root for complete field structure requirements

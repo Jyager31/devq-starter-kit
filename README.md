@@ -1,201 +1,126 @@
-# DevQ Starter Theme
+# DevQ Starter Kit
 
-A production-ready WordPress starter theme with 30 ACF blocks, programmatic page creation, auto-updates via GitHub releases, and a child theme system for per-client customization.
+A WordPress **site scaffold**, not a framework. Clone it, rename the directory to the client
+slug, and build. One theme per site -- no parent, no child theme, no premade blocks.
 
----
+Kit repo: `Jyager31/devq-starter-kit`
 
 ## Quick Start
 
-### New Client Site (Automated)
-
-1. Create a fresh Local site
-2. Clone this theme: `git clone https://github.com/Jyager31/devq-starter-theme.git devq-starter`
-3. Install ACF Pro, Gravity Forms, Yoast SEO
-4. Run bootstrap: `wp eval-file "wp-content/themes/devq-starter/scripts/bootstrap.php" "Client Name"`
-5. Run setup: `wp eval-file "wp-content/themes/devq-starter/scripts/setup-site.php"`
-
-Or use `/site-build` in Claude Code for a fully automated build from a reference URL or brief.
-
-### New Block
-
-1. Read **[CLAUDE.md](CLAUDE.md)** for complete instructions
-2. Add the block name to `$basefunctions` in `functions/blocks.php`
-3. Create `blocks/[blockname]/code.php` using the template
-4. Create `acfjson/group_[blockname]_block.json` with Content, Options, and Animation tabs
-
----
-
-## Theme Architecture
-
-### File Structure
-
-```
-devq-starter/
-├── CLAUDE.md                  — Complete dev reference (blocks, fields, conventions)
-├── README.md                  — This file
-├── style.css                  — Main stylesheet + theme header (version source of truth)
-├── functions.php              — Theme setup, requires all function files
-├── header.php                 — Desktop nav + mobile menu
-├── footer.php                 — Footer with dynamic copyright
-├── front-page.php             — Front page template
-├── single.php                 — Single post template
-├── archive.php                — Archive/category template
-├── index.php                  — Blog listing fallback
-├── search.php                 — Search results
-├── 404.php                    — 404 page (configurable via Theme Settings)
-├── theme-settings-css.php     — Generates CSS variables from ACF options
-│
-├── functions/
-│   ├── acf.php                — ACF options pages, Local JSON paths
-│   ├── animations.php         — devq_aos() helper for per-element animations
-│   ├── blocks.php             — Block registration (30 blocks), category, allowed types
-│   ├── emailnotifications.php — Disables WP update notification emails
-│   ├── navwalker.php          — Desktop dropdown walker + mobile accordion walker
-│   ├── page-builder.php       — devq_create_page(), REST API endpoints, Block Library admin
-│   ├── page-presets.php       — Page layout presets (home, about, contact, services, landing)
-│   ├── posttype.php           — Custom post type registration (boilerplate)
-│   ├── scripts.php            — Conditional script/style enqueues + custom login page
-│   ├── shortcodes.php         — [name], [phone], [email], [address] shortcodes
-│   ├── spacing.php            — Centralized responsive spacing system
-│   ├── theme-disconnect.php   — One-click "flatten & sever" tool (Tools > Disconnect Theme)
-│   └── theme-updater.php      — GitHub release auto-updater via plugin-update-checker
-│
-├── blocks/                    — 30 block folders, each with code.php + optional style.css/script.js
-│   ├── hero/                  ├── herosplit/          ├── herovideo/
-│   ├── heroslider/            ├── herofullscreen/     ├── textimage/
-│   ├── content/               ├── about/              ├── blogposts/
-│   ├── tabs/                  ├── cards/              ├── team/
-│   ├── pricing/               ├── comparisontable/    ├── testimonials/
-│   ├── logobar/               ├── stats/              ├── marquee/
-│   ├── image/                 ├── gallery/            ├── video/
-│   ├── map/                   ├── beforeafter/        ├── banner/
-│   ├── cta/                   ├── contactsplit/       ├── faq/
-│   ├── process/               ├── featureslist/       └── timeline/
-│
-├── acfjson/                   — ACF Local JSON field groups (auto-synced)
-│
-├── scripts/
-│   ├── bootstrap.php          — Creates child theme from boilerplate, activates it
-│   ├── setup-site.php         — Scaffolds pages from presets, sets front page, builds menu
-│   ├── create-block-library.php — Generates showcase page with all 30 blocks
-│   └── site-health.php        — WP-CLI audit script (theme, plugins, settings, content)
-│
-├── devq-starter-child/        — Child theme boilerplate (copied per client by bootstrap.php)
-│   ├── style.css
-│   └── functions.php
-│
-├── plugin-update-checker/     — Third-party library (do not edit)
-├── .github/workflows/         — GitHub Actions: auto-builds release zip on tag push
-└── assets/
-    ├── css/                   — aos.css, reflex.css, slick.css, beefup.css, magnific-popup.css
-    └── js/                    — aos.js, slick.js, beefup.min.js, magnific-popup.min.js,
-                                 mobile-menu.js, custom.js
+```bash
+cd wp-content/themes
+git clone https://github.com/Jyager31/devq-starter-kit.git acme-roofing
+rm -rf acme-roofing/.git
+# set "Theme Name: Acme Roofing" in style.css, then activate
 ```
 
-### Blocks (30 total)
+Then: install ACF Pro, fill in Theme Settings, write `header.php` / `footer.php` to the design,
+and build the site's blocks.
 
-| Category | Blocks |
-|----------|--------|
-| Heroes | Hero, Hero Split, Hero Video, Hero Slider, Hero Fullscreen |
-| Content | Text Image, Content, About, Blog Posts, Tabs |
-| Cards & Grids | Cards, Team, Pricing, Comparison Table |
-| Social Proof | Testimonials, Logo Bar, Stats, Marquee |
-| Media | Image, Gallery, Video, Map, Before/After |
-| Conversion | Banner, CTA, Contact Split |
-| Lists | FAQ, Process, Features List, Timeline |
+## Why there is no child theme
 
-### JS Libraries
+Every site used to get `devq-starter` (parent) plus `<slug>-child`. In practice the parent was
+cloned per site and edited in place anyway, so it never delivered the shared-framework benefit
+it charged for. What it did deliver:
 
-**Always loaded:** jQuery (WP bundled), AOS, Mobile Menu (custom vanilla JS)
+- `devq_generate_block_markup()` resolved block field keys from the **parent** dir only, so a
+  block defined in the child serialized its repeaters as a raw nested array. The block rendered
+  on the front end and showed an **empty repeater in the editor**.
+- Blocks print their CSS inline in the body, *after* the child stylesheet in `<head>` -- so a
+  child rule lost every specificity tie it should have won.
+- `archive.php` / `index.php` / `single.php` dispatched on `$layout_archive_style`, a variable
+  only ever assigned inside `theme-settings-css.php` -- which is included from `header.php`, i.e.
+  inside a function scope. Every archive and single post rendered a PHP warning and no content.
 
-**Conditionally loaded** (auto-detected from page blocks):
-- Slick — when Hero Slider or Testimonials blocks are present
-- BeefUp — when FAQ block is present
-- Magnific Popup — when Gallery block is present
+With one theme, `get_template_directory() === get_stylesheet_directory()` and all three are
+structurally impossible.
 
-### CSS Breakpoints
+## Blocks are built per site
 
-- **Tablet:** `@media (max-width: 1199px)`
-- **Mobile:** `@media (max-width: 767px)`
+`blocks/` ships empty. Every section of a site gets a block designed for that site, registered
+through the `devq_blocks` filter:
 
-### Theme Settings (ACF Options)
+```php
+add_filter('devq_blocks', function ($blocks) {
+    $blocks[] = 'Proof Cards';   // folder: blocks/proofcards/
+    return $blocks;
+});
+```
 
-| Category | Fields |
-|----------|--------|
-| Branding | Logo, alt logo, favicon, company name, header CTA |
-| Contact | Phone, email, address |
-| Social | Facebook, Instagram, LinkedIn, YouTube, Twitter |
-| Styles — Colors | Primary, secondary, accent |
-| Styles — Typography | Font embed, heading font/weight/line-height, body font/weight/size/line-height |
-| Styles — Buttons | Border radius, padding |
-| Layout | Header style, mobile menu style, footer style |
-| Scripts | Header/footer scripts, GA, GTM, Facebook Pixel |
-| 404 Page | Title, message, search toggle, quick links |
+The 30 blocks this theme used to ship live in the toolkit at
+`Claude Code Toolkit/Commands/block-builder/_library/` and are **post-launch only** -- for an
+already-launched site that needs a routine section. They are not a starting point for a build.
 
----
+While `devq_get_blocks()` is empty, the page editor falls through to the full core block list
+rather than locking up.
 
-## Releasing Updates
+## File Structure
 
-This theme auto-updates on all client sites via GitHub releases.
+```
+acfjson/              7 settings field groups (branding, contact, social,
+                      styles, scripts, layout, 404) + your block groups
+assets/               css: aos, reflex, slick, beefup, magnific
+                      js:  mobile-menu, custom, vendor libs
+blocks/               EMPTY. Your blocks go here.
+functions/            acf, animations, blocks, emailnotifications, navwalker,
+                      page-builder, posttype, scripts, shortcodes, spacing
+images/               theme chrome (login logo, placeholders)
+scripts/              site-health.php
+template-parts/       archive/ and single/ layout variants
+header.php            single file, rewrite to spec
+footer.php            single file, rewrite to spec
+theme-settings-css.php  ACF options -> :root CSS variables (inline, in <head>)
+style.css             tokens + global CSS + header/footer baseline
+```
 
-1. Bump `Version:` in `style.css`
-2. Commit and tag: `git tag vX.Y.Z && git push origin master vX.Y.Z`
-3. GitHub Actions builds the zip and creates the release automatically
+## Theme Settings (ACF Options)
 
----
+| Page | Fields |
+|---|---|
+| Branding | logo, alt logo, favicon, company name, header CTA, guidelines PDF |
+| Contact | phone, email, address |
+| Social | facebook, instagram, linkedin, youtube, twitter |
+| Styles | colors, typography, buttons, spacing, section padding |
+| Scripts | GA, GTM, FB Pixel, header/footer script blobs |
+| Layouts | blog archive style, blog single style |
+| 404 | title, message, search toggle, 3 links |
 
-## Child Theme System
+`header.php` and `footer.php` read the Branding / Contact / Social fields, so logo, phone and
+social links stay client-editable even though the layout is bespoke.
 
-Per-client customizations live in child themes. The boilerplate in `devq-starter-child/` is copied by `bootstrap.php` for each new site.
+Header, mobile-menu and footer **style variants were removed** -- they were deleted by hand on
+every build anyway. Blog archive/single variants remain.
 
-Child themes can:
-- **Add blocks** via the `devq_blocks` filter
-- **Override templates** by copying `blocks/[name]/code.php` to the same path
-- **Override styles/scripts** by copying `blocks/[name]/style.css` or `script.js`
-- **Remove blocks** via `array_diff` on the filter
+## Menus
 
-### Theme Disconnect
+Two registered locations: `primary` and `footer`. Use `theme_location`; the old hardcoded
+`'menu' => 'Desktop'` lookup is gone.
 
-When a client site is finalized and no longer needs parent theme updates, use **Tools > Disconnect Theme** to merge the child into the parent, remove the updater, and create a standalone theme.
+## CSS
 
----
+- Breakpoints: **1199px** (tablet) and **767px** (mobile). Never 991px.
+- Variables from Theme Settings: `--primary`, `--secondary`, `--tertiary`, `--font1`, `--font2`,
+  `--section-padding-top`, `--section-padding-bottom`, `--transition-default`.
+- `theme-settings-css.php` emits `:root` inline in `<head>` **before** `wp_head()`. Leave it
+  there -- the stylesheet is meant to win over it.
 
-## Page Builder
+Per-block `style.css` / `script.js` are versioned by `filemtime`, so an edit busts cache. ACF
+would otherwise stamp them with `ACF_VERSION`, which never moves.
 
-Create pages programmatically with blocks via PHP, WP-CLI, or REST API.
+## JS Libraries
 
-### Presets
+jQuery, AOS, Slick, BeefUp, Magnific Popup. Slick/BeefUp/Magnific load conditionally based on
+which blocks are on the page (`devq_page_has_block()`).
 
-| Preset | Blocks |
-|--------|--------|
-| `home` | Hero, Text Image, Cards, CTA |
-| `about` | Hero, Content, Text Image, CTA |
-| `contact` | Hero, Contact Split |
-| `services` | Hero, Content, Cards, FAQ, CTA |
-| `landing` | Hero, Text Image, Cards, FAQ, CTA |
+## Versioning
 
-### REST API
+`Version:` in `style.css` is the source of truth. **There is no auto-updater.** The kit is
+consumed by `git clone` at scaffold time and a scaffolded site is thereafter its own theme;
+fixes flow forward to new sites, not backward to shipped ones.
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/wp-json/devq/v1/create-page` | POST | Create a page with blocks |
-| `/wp-json/devq/v1/create-menu` | POST | Create/replace primary menu |
-| `/wp-json/devq/v1/setup-front-page` | POST | Set static front page |
-| `/wp-json/devq/v1/site-info` | GET | Site URL, theme, blocks, presets |
+`DevQ Kit:` in `style.css` records the kit commit a site was born from. Leave it in place.
 
-### Admin Tools
+## Docs
 
-- **Appearance > Block Library** — Generate a showcase page with all 30 blocks
-- **Tools > Disconnect Theme** — Flatten child theme into standalone
-- **WP-CLI:** `wp eval-file ".../scripts/site-health.php"` — Audit site configuration
-
----
-
-## Documentation
-
-| Document | Purpose |
-|----------|---------|
-| [CLAUDE.md](CLAUDE.md) | Complete dev reference — blocks, fields, conventions, animation system |
-| [blocks/README.md](blocks/README.md) | Block creation guidelines |
-| [blocks/BLOCK-TEMPLATE.md](blocks/BLOCK-TEMPLATE.md) | Quick reference checklist |
-| [acfjson/README.md](acfjson/README.md) | ACF Local JSON auto-sync system |
+`CLAUDE.md` -- block authoring: field naming, the code.php template, ACF JSON conventions,
+animation, escaping, spacing, and the programmatic page builder.

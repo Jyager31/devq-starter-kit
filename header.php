@@ -74,7 +74,7 @@ $page_body_scripts = get_field('page_body_scripts');
   <?php wp_head(); ?>
 </head>
 
-<body <?php body_class($layout_header_style === 'transparent' ? 'has-transparent-header' : ''); ?>>
+<body <?php body_class(); ?>>
   <?php
   // Google Tag Manager (noscript)
   if ($google_tag_manager) : ?>
@@ -123,15 +123,103 @@ $page_body_scripts = get_field('page_body_scripts');
   }
   ?>
 
-  <?php
-  // Per-page transparent header override
-  if (get_field('page_transparent_header')) {
-      $layout_header_style = 'transparent';
-  }
+<?php
+/**
+ * Site header.
+ *
+ * This is the scaffold's starting point, not a finished design -- every site
+ * rewrites this file to spec. It reads the Theme Settings content fields so the
+ * client can still change the logo, CTA and phone number without a developer.
+ */
 
-  // Load the selected header style
-  get_template_part('template-parts/header/style', $layout_header_style);
-  ?>
+$logo         = get_field('branding_logo', 'option');
+$cta          = get_field('branding_header_cta', 'option');
+$company_name = get_field('branding_company_name', 'option');
+$header_phone = get_field('contact_phone', 'option');
+?>
+
+<header class="devq-header-wrap">
+  <div class="container">
+    <div class="devq-header">
+      <div class="devq-header-logo">
+        <a href="<?php echo esc_url(home_url('/')); ?>">
+          <?php if (!empty($logo['url'])) : ?>
+            <img class="mainLogo" src="<?php echo esc_url($logo['url']); ?>"
+                 alt="<?php echo esc_attr(!empty($logo['alt']) ? $logo['alt'] : $company_name); ?>">
+          <?php else : ?>
+            <span class="devq-header-wordmark"><?php echo esc_html($company_name ?: get_bloginfo('name')); ?></span>
+          <?php endif; ?>
+        </a>
+      </div>
+
+      <nav class="devq-header-nav desktopOnly" aria-label="Primary navigation">
+        <?php
+        wp_nav_menu(array(
+          'theme_location' => 'primary',
+          'menu_class'     => 'devq-desktop-nav',
+          'container'      => false,
+          'fallback_cb'    => false,
+          'items_wrap'     => '<ul id="%1$s" class="%2$s">%3$s</ul>',
+          'walker'         => new devq_nav_walker(),
+        ));
+        ?>
+      </nav>
+
+      <div class="devq-header-actions">
+        <?php if (!empty($cta['url'])) : ?>
+          <a href="<?php echo esc_url($cta['url']); ?>" class="btn devq-header-cta desktopOnly"
+             <?php echo !empty($cta['target']) ? 'target="' . esc_attr($cta['target']) . '"' : ''; ?>>
+            <?php echo esc_html($cta['title']); ?>
+          </a>
+        <?php endif; ?>
+
+        <div class="mobileOnly">
+          <button class="devq-hamburger" id="devq-menu-toggle" aria-label="Toggle menu"
+                  aria-expanded="false" aria-controls="devq-mobile-menu">
+            <span class="devq-hamburger-box">
+              <span class="devq-hamburger-bar"></span>
+              <span class="devq-hamburger-bar"></span>
+              <span class="devq-hamburger-bar"></span>
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="devq-mobile-menu" id="devq-mobile-menu" data-style="fullscreen"
+     aria-hidden="true" role="dialog" aria-label="Mobile navigation">
+  <button class="devq-menu-close" id="devq-menu-close" aria-label="Close menu">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+
+  <?php if (!empty($logo['url'])) : ?>
+    <a href="<?php echo esc_url(home_url('/')); ?>" class="devq-mobile-logo">
+      <img src="<?php echo esc_url($logo['url']); ?>" alt="<?php echo esc_attr(!empty($logo['alt']) ? $logo['alt'] : $company_name); ?>">
+    </a>
+  <?php endif; ?>
+
+  <nav aria-label="Mobile navigation">
+    <?php
+    wp_nav_menu(array(
+      'theme_location' => 'primary',
+      'menu_class'     => 'devq-mobile-nav',
+      'container'      => false,
+      'fallback_cb'    => false,
+      'items_wrap'     => '<ul id="%1$s" class="%2$s">%3$s</ul>',
+      'walker'         => new DevQ_Mobile_Nav_Walker(),
+    ));
+    ?>
+  </nav>
+
+  <?php if (!empty($header_phone)) : ?>
+    <div class="devq-mobile-contact">
+      <a href="tel:<?php echo esc_attr($header_phone); ?>"><?php echo esc_html($header_phone); ?></a>
+    </div>
+  <?php endif; ?>
+</div>
 
 <style>
   /* Shared Hamburger Button Styles */
@@ -164,7 +252,7 @@ $page_body_scripts = get_field('page_body_scripts');
     transform-origin: center;
   }
 
-  /* Hamburger → X morph */
+  /* Hamburger -> X morph */
   .devq-hamburger.is-active .devq-hamburger-bar:nth-child(1) {
     transform: translateY(7.5px) rotate(45deg);
   }
