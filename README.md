@@ -31,6 +31,7 @@ it charged for. What it did deliver:
 - `archive.php` / `index.php` / `single.php` dispatched on `$layout_archive_style`, a variable
   only ever assigned inside `theme-settings-css.php` -- which is included from `header.php`, i.e.
   inside a function scope. Every archive and single post rendered a PHP warning and no content.
+  (That dispatch is gone entirely as of 2026-09-03, along with `theme-settings-css.php`.)
 
 With one theme, `get_template_directory() === get_stylesheet_directory()` and all three are
 structurally impossible.
@@ -57,39 +58,84 @@ rather than locking up.
 ## File Structure
 
 ```
-acfjson/              7 settings field groups (branding, contact, social,
-                      styles, scripts, layout, 404) + your block groups
-assets/               css: aos, reflex, slick, beefup, magnific
-                      js:  mobile-menu, custom, vendor libs
+acfjson/              4 settings field groups (branding, contact, social,
+                      scripts) + your block groups
+assets/               css: aos, reflex, slick, beefup, magnific,
+                           editor-canvas (iframe), admin-ux (wp-admin)
+                      js:  mobile-menu, custom, editor-onboarding, vendor libs
 blocks/               EMPTY. Your blocks go here.
-functions/            acf, animations, blocks, emailnotifications, navwalker,
-                      page-builder, posttype, scripts, shortcodes, spacing
+functions/            acf, admin-ux, animations, blocks, editor-canvas,
+                      emailnotifications, navwalker, page-builder, posttype,
+                      scripts, shortcodes, spacing
 images/               theme chrome (login logo, placeholders)
 scripts/              site-health.php
-template-parts/       archive/ and single/ layout variants
 header.php            single file, rewrite to spec
 footer.php            single file, rewrite to spec
-theme-settings-css.php  ACF options -> :root CSS variables (inline, in <head>)
-style.css             tokens + global CSS + header/footer baseline
+404.php               written to spec, hard-coded copy
+archive.php           written to spec (ships a card grid)
+single.php            written to spec (ships a classic hero)
+style.css             the :root brand tokens + global CSS + header/footer baseline
 ```
 
 ## Theme Settings (ACF Options)
 
-| Page | Fields |
-|---|---|
-| Branding | logo, alt logo, favicon, company name, header CTA, guidelines PDF |
-| Contact | phone, email, address |
-| Social | facebook, instagram, linkedin, youtube, twitter |
-| Styles | colors, typography, buttons, spacing, section padding |
-| Scripts | GA, GTM, FB Pixel, header/footer script blobs |
-| Layouts | blog archive style, blog single style |
-| 404 | title, message, search toggle, 3 links |
+Four pages, on purpose.
 
-`header.php` and `footer.php` read the Branding / Contact / Social fields, so logo, phone and
-social links stay client-editable even though the layout is bespoke.
+| Page | Capability | Fields |
+|---|---|---|
+| Branding | `edit_posts` | logo, alt logo, favicon, company name, header CTA |
+| Contact | `edit_posts` | phone, email, address |
+| Social | `edit_posts` | facebook, instagram, linkedin, youtube, twitter |
+| Scripts | `manage_options` | GA, GTM, FB Pixel, header/footer script blobs |
 
-Header, mobile-menu and footer **style variants were removed** -- they were deleted by hand on
-every build anyway. Blog archive/single variants remain.
+A setting earns a page here only if it genuinely **changes after launch** and is not a design
+decision: a new phone number, a new Instagram account, a swapped logo, a marketing tag.
+`header.php` and `footer.php` read these, so those stay client-editable even though the layout
+is bespoke.
+
+Removed 2026-09-03 -- read `devq_theme_settings_pages()` before adding any of them back:
+
+| Page | Was | Now |
+|---|---|---|
+| **Styles** | 26 fields of colour, type, spacing, button geometry | the `:root` block in `style.css` |
+| **Layouts** | picked between 6 `template-parts/{archive,single}/style-*.php` | `archive.php` / `single.php` written to spec |
+| **404** | title, message, search toggle, 3 links | `404.php` written to spec |
+
+Same reasoning that retired the header, mobile-menu and footer style variants: a designed
+thing does not belong behind a dropdown, nobody ever picked anything but the default, and as
+an options page it was a switch that restyled every template on the site sitting on a client's
+account.
+
+A sub page does **not** inherit its parent's capability, so each one is set individually --
+setting only the parent leaves every child open, which is how an account handed out for content
+work ends up able to inject JavaScript into every page. Move a page between tiers with the
+`devq_theme_settings_pages` filter.
+
+## Client editing experience
+
+WordPress 7.1 iframes the post editor canvas unconditionally — `useShouldIframe()` is gone and
+`editor.js` hardcodes `shouldIframe: true`. ACF detects that iframe and pins every ACF block to
+**preview** with no edit toggle. Nothing turns it off, and defeating it breaks core's layout
+without producing a form (tested). So on 7.1+ a client edits blocks entirely through the block
+inspector, and the canvas is a preview they read. Details in `CLAUDE.md`.
+
+The kit ships that as a working experience rather than leaving each build to rediscover it:
+
+- `functions/editor-canvas.php` puts `style.css` (brand tokens included), the grid and every
+  registered block's CSS **inside the iframe**. Without it every block previews as unstyled
+  serif HTML — ACF's per-block `enqueue_style` does not reach the frame either.
+- `assets/css/editor-fonts.css` repeats `header.php`'s webfonts as an `@import`, because an
+  iframe cannot be handed a `<link>`. `site-health.php` fails if the two drift.
+- `assets/css/editor-canvas.css` undoes front-end behaviour with no JS behind it in the
+  editor, so an AOS block does not preview as an empty band.
+- `assets/css/admin-ux.css` makes the ~265px inspector usable.
+- `devq_block_placeholder()` gives an empty block a labelled dashed box in the editor. Without
+  it a block with an empty repeater renders nothing anywhere and nobody can see it exists.
+- List View opens by default the first time a user edits, once.
+- A **How to edit your site** panel sits at the top of the dashboard. Customise per site with
+  the `devq_help_steps` and `devq_help_footnote` filters.
+
+Full mechanics and the traps in `CLAUDE.md`.
 
 ## Menus
 
@@ -99,10 +145,13 @@ Two registered locations: `primary` and `footer`. Use `theme_location`; the old 
 ## CSS
 
 - Breakpoints: **1199px** (tablet) and **767px** (mobile). Never 991px.
-- Variables from Theme Settings: `--primary`, `--secondary`, `--tertiary`, `--font1`, `--font2`,
-  `--section-padding-top`, `--section-padding-bottom`, `--transition-default`.
-- `theme-settings-css.php` emits `:root` inline in `<head>` **before** `wp_head()`. Leave it
-  there -- the stylesheet is meant to win over it.
+- **Brand tokens are the `:root` block at the top of `style.css`** -- colours, type, buttons,
+  spacing. One source, read by the front end and by the editor canvas. They were an ACF
+  Theme Settings > Styles page until 2026-09-03; do not put them back.
+- Colour un-styled body copy with `var(--body-color)`. `style.css` names `p, ul, li` directly,
+  and a rule matching an element beats an inherited value, so overriding `body { color }` on a
+  dark build does not reach them.
+- `scripts/site-health.php` warns when a token is still the kit's shipped default.
 
 Per-block `style.css` / `script.js` are versioned by `filemtime`, so an edit busts cache. ACF
 would otherwise stamp them with `ACF_VERSION`, which never moves.

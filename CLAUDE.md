@@ -18,7 +18,11 @@ empty-repeater-in-editor bug and a long list of CSS specificity traps.
 - **Spacing system:** `functions/spacing.php` -- centralized responsive spacing
 - **Animation helper:** `functions/animations.php` -- `devq_aos()` helper for AOS attribute generation
 - **Page builder:** `functions/page-builder.php` -- programmatic page creation
-- **Theme settings CSS:** `theme-settings-css.php` -- generates CSS variables from ACF options
+- **Brand tokens:** the `:root` block at the top of `style.css` -- the single source
+- **Editor canvas:** `functions/editor-canvas.php` -- puts `style.css`, the grid and the
+  registered blocks' CSS inside the editor iframe
+- **Admin usability:** `functions/admin-ux.php` -- block inspector CSS, the first-run List View
+  nudge, and the "How to edit your site" dashboard panel
 - **Main stylesheet:** `style.css`
 - **Header / footer:** `header.php` and `footer.php` -- single files, rewritten to spec per site
 
@@ -44,6 +48,80 @@ add_filter('devq_blocks', function ($blocks) {
 `devq_get_blocks()` returns an empty array by default, so the list is whatever this site adds.
 While it is empty, `devq_allowed_block_types()` falls through to the full core block list rather
 than locking the page editor.
+
+## The client's editing experience
+
+Read this before changing `functions/editor-canvas.php`, `functions/admin-ux.php` or the
+`:root` block in `style.css`. It is one mechanism with several consequences.
+
+**Sometimes WordPress iframes the post editor canvas, and when it does, ACF blocks become
+preview-only.** ACF checks for `iframe[name="editor-canvas"]` in `acf-pro-blocks.min.js`; when it
+finds one it pins every ACF block to **preview** and removes the edit/preview toggle. That check
+is in ACF's JavaScript, downstream of anything PHP hands it — `'mode' => 'edit'` does nothing, and
+neither does a saved `"mode":"edit"`. There is no setting that turns it off.
+
+**On WordPress 7.1+ this is unconditional.** `useShouldIframe()` is gone from `edit-post.js`
+(the file no longer contains the string `apiVersion`), and `editor.js` hardcodes
+`shouldIframe: true`. There is no prop, filter or setting to opt out. Verified 2026-09-03.
+
+On **7.0.x** it was gated — the canvas was iframed only for the Gutenberg plugin, a device
+preview, `wp_template` / `wp_block`, zoom-out, or **every** block being `apiVersion >= 3`. ACF
+blocks are v2, so ordinary pages escaped and fields rendered in the canvas. That is why the same
+site flips behaviour across a core update, and why a block editable this morning is preview-only
+this afternoon. Before blaming theme code for an editor change, check `wp_version` and the mtime
+of `wp-includes/js/dist/edit-post.js`.
+
+Do not try to defeat it. Renaming the iframe so ACF's DOM check misses it was tested: ACF stops
+pinning preview, but it still renders `acf-block-preview` rather than the form (zero `.acf-field`
+in either document) **and** core's own layout collapses, because core queries
+`iframe[name="editor-canvas"]` for canvas sizing.
+
+So on 7.1+:
+
+- **The inspector is the only editing surface.** `admin-ux.css` widens it from 280px to 420px
+  above 1200px, which is what makes real field groups usable there.
+- **The canvas preview must be correct**, because it is all the client sees.
+- **List View is how a block gets selected.** `functions/admin-ux.php` opens it once per user.
+
+What the theme does about it:
+
+| Problem | Handled by |
+|---|---|
+| The iframe inherits no CSS at all, so blocks preview as unstyled serif | `add_editor_style()` in `editor-canvas.php` — `style.css`, the grid, and every **registered** block's `style.css` |
+| ACF's per-block `enqueue_style` never reaches the iframe | same — that is why block CSS is listed there and not left to ACF |
+| Brand tokens have to reach the iframe | free: they are the `:root` block in `style.css`, already in that list |
+| Webfonts: an iframe cannot be handed a `<link>` | `assets/css/editor-fonts.css`, one `@import`, kept in step with `header.php` |
+| ACF WYSIWYG fields render in the browser default serif | free: wp-admin appends the editor-style list to TinyMCE's `content_css` |
+| The canvas runs no JS, so AOS leaves animated blocks at opacity 0 | `assets/css/editor-canvas.css` |
+| Left-placement ACF tabs eat 53px of a 265px inspector | `assets/css/admin-ux.css`, scoped to the sidebar |
+| An empty block renders nothing and is invisible in both places | `devq_block_placeholder()` |
+
+**The token contract.** The `:root` block at the top of `style.css` is the only place tokens
+are declared, and `style.css` is in the editor-style list. Core's `ROOT_SELECTOR_TOKENS`
+(`block-editor.js`) **substitutes** `.editor-styles-wrapper` for a selector starting with
+`:root`, `html` or `body` rather than nesting under it, so that one block is correct on the
+front end and in the canvas with no second copy anywhere. Declare a token in a block's own
+stylesheet or an inline `<style>` and you brand the front end while leaving the editor
+behind — which is how a client ends up reporting the editor looks broken while every page
+they load is fine.
+
+**Fonts are the one thing that needs saying twice**, because an iframe cannot be handed a
+`<link>`: the tags in `header.php` and the `@import` in `assets/css/editor-fonts.css` have
+to name the same families. Do not put a remote URL in `add_editor_style()` instead — core
+does a server-side `wp_remote_get()` for those on **every** editor page load, uncached.
+
+**Theme Settings is deliberately four pages.** Branding, Contact and Social at `edit_posts`;
+Scripts at `manage_options`. A setting earns a place there only if it genuinely changes after
+launch and is not a design decision — a new phone number, a swapped logo, a marketing tag.
+Everything describing how the site *looks* is code. See `devq_theme_settings_pages()` in
+`functions/acf.php` for what was removed and why; move a page between tiers with the
+`devq_theme_settings_pages` filter rather than editing the array.
+
+A sub page does **not** inherit its parent's capability. Set it on the parent alone and every
+child stays open — which is how an account handed out for content work ends up able to inject
+JavaScript into every page on the site.
+
+---
 
 ## Versioning
 
@@ -142,6 +220,13 @@ if (!function_exists('get_field')) {
 
 // ACF Fields - Content Tab
 $field1 = get_field('field1');
+
+// Empty state (REQUIRED on any block that can render nothing --
+// an empty repeater, an empty gallery, a query with no results)
+if (empty($field1)) {
+    devq_block_placeholder('[Block Name]', 'Add at least one [item] for this section to appear.');
+    return;
+}
 
 // Options Tab Fields (ALWAYS include these)
 $margin_top = get_field('margin_top') ?: '';
