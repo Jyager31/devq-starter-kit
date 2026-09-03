@@ -95,7 +95,7 @@ function register_acf_block_types()
             'title'             => __($name, 'devq'),
             'render_template'   => 'blocks/' . $filteredname . '/code.php',
             'category'          => 'devq',
-            'icon'              => $icon,
+            'icon'              => devq_block_icon($filteredname, $icon),
             'mode'              => 'edit',
             'align'             => 'wide',
             'supports'          => array('align' => array('wide', 'full', 'center')),
@@ -158,3 +158,98 @@ function devq_version_block_asset($src)
 }
 add_filter('style_loader_src', 'devq_version_block_asset', 20);
 add_filter('script_loader_src', 'devq_version_block_asset', 20);
+
+
+/**
+ * The inserter / List View icon for a block.
+ *
+ * Every block sharing the DevQ mark is fine in the inserter and useless in List
+ * View, which is now the only way a client moves between blocks: WordPress iframes
+ * the editor canvas, ACF sees that iframe and pins every block to preview with no
+ * edit toggle, so selecting a block in List View is how its fields get opened.
+ * Ten identical rows named by title alone is a slow read.
+ *
+ * Drop an SVG at blocks/<block>/icon.svg to give a block its own. Anything without
+ * one keeps the DevQ mark.
+ *
+ * @param string $filteredname Block folder name.
+ * @param string $default      Fallback icon markup.
+ * @return string
+ */
+function devq_block_icon($filteredname, $default)
+{
+    $path = get_template_directory() . '/blocks/' . $filteredname . '/icon.svg';
+
+    if (!file_exists($path)) {
+        return $default;
+    }
+
+    $svg = file_get_contents($path);
+
+    // ACF prints the icon markup straight into the editor UI, so anything with a
+    // script in it would run there. Take the file only if it is a plain SVG.
+    if (!$svg || stripos($svg, '<svg') === false || stripos($svg, '<script') !== false) {
+        return $default;
+    }
+
+    return $svg;
+}
+
+
+/**
+ * Is this render happening inside the editor rather than on the page?
+ *
+ * ACF renders block previews over its own admin-ajax endpoint, and the core block
+ * renderer comes in over REST. Neither is a front-end request.
+ *
+ * @return bool
+ */
+function devq_in_block_editor()
+{
+    if (is_admin()) {
+        return true;
+    }
+
+    return defined('REST_REQUEST') && REST_REQUEST;
+}
+
+
+/**
+ * Editor-only stand-in for a block that has nothing to render yet.
+ *
+ * A block whose repeater is empty prints nothing on the front end -- not the
+ * heading, not the wrapper, nothing -- which is correct output and a terrible
+ * editing experience: the section is invisible on the live page AND invisible in
+ * the editor, so nobody can see that it exists and is waiting on content. On
+ * Bellco two home page blocks sat empty through a full client review because
+ * neither of them left a mark anywhere.
+ *
+ * Call it in place of the block markup, then return:
+ *
+ *     if (empty($applications)) {
+ *         devq_block_placeholder('Application Carousel', 'Add at least one case study.');
+ *         return;
+ *     }
+ *
+ * Prints nothing on the front end, so the block stays silent there.
+ *
+ * @param string $title   The block's name, as the client sees it in List View.
+ * @param string $message What they need to add. Say the field, not the concept.
+ * @return void
+ */
+function devq_block_placeholder($title, $message = '')
+{
+    if (!devq_in_block_editor()) {
+        return;
+    }
+
+    if ($message === '') {
+        $message = __('This section is empty. Add content to its fields in the Block panel on the right and it will appear here.', 'devq');
+    }
+
+    printf(
+        '<div class="devq-editor-placeholder"><span class="devq-editor-placeholder__title">%s</span><span class="devq-editor-placeholder__message">%s</span></div>',
+        esc_html($title),
+        esc_html($message)
+    );
+}

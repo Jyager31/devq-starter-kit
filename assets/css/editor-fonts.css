@@ -1,0 +1,15 @@
+/* -----------------------------------------------------------------------------
+ * Webfonts for the block editor canvas.
+ *
+ * Keep this in step with the <link> tags in header.php. The canvas is an iframe
+ * and cannot be handed a <link>, so the same families have to arrive as an
+ * @import or every block previews in a fallback face while the live page is fine
+ * -- which reads to a client as "the editor looks wrong".
+ *
+ * @import rather than a remote URL in add_editor_style(): a URL there makes
+ * WordPress do a server-side wp_remote_get() on EVERY editor page load, with no
+ * caching. This lets the browser cache it like any other stylesheet.
+ *
+ * Must stay the first thing in this file -- an @import after any rule is ignored.
+ * -------------------------------------------------------------------------- */
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;600;700&display=swap");

@@ -1,0 +1,170 @@
+/* -----------------------------------------------------------------------------
+ * wp-admin, editor and dashboard screens only.
+ *
+ * Enqueued from functions/admin-ux.php. This is the PARENT document, not the
+ * canvas iframe -- the inspector, ACF's field markup and the editor chrome all
+ * live out here. Canvas styling is assets/css/editor-canvas.css.
+ *
+ * Selectors below were read off ACF Pro 6.7.0.2's own acf-input.min.css. If ACF
+ * moves them, these rules go quiet rather than breaking anything.
+ * -------------------------------------------------------------------------- */
+
+/* -----------------------------------------------------------------------------
+ * Widen the block inspector
+ *
+ * WordPress 7.1 removed useShouldIframe() from edit-post.js -- the canvas is now
+ * iframed unconditionally, with no prop, filter or setting to opt out
+ * (editor.js hardcodes `shouldIframe: true`). ACF detects that iframe and pins
+ * every block to preview with no edit/preview toggle, so on 7.1+ the inspector
+ * is the ONLY place a client can reach a block's fields. On 7.0.x it was gated
+ * on every block being apiVersion >= 3, so ACF blocks stayed editable in the
+ * canvas -- which is why the same site behaves differently across that update.
+ *
+ * At WordPress's default 280px that panel is unusable for real field groups: a
+ * 50/50 pair lands at 133px each, the tab row wraps to two lines and a text
+ * input shows "Reference blo".
+ *
+ * Widening the panel beats forcing every field to full width, because the 50/50
+ * pairs keep the grouping they were designed with. The width has to be set on
+ * the inner regions too -- the sidebar itself accepts a new width while
+ * .block-editor-block-inspector stays pinned at 265px, so the panel just grows
+ * dead space on its right. The inner selectors are structural on purpose: the
+ * wrapper divs carry generated emotion class names that change between builds.
+ *
+ * Only above 1200px, where there is room to take it from the canvas.
+ *
+ * Measured on this panel: inspector 265 -> 405px, paired fields 133 -> 203px,
+ * repeater sub fields 84/167 -> 154/307px, tab rows 2 -> 1, TinyMCE rows 4 -> 3,
+ * no horizontal overflow.
+ * -------------------------------------------------------------------------- */
+@media (min-width: 1200px) {
+  /* !important throughout: WordPress sets these widths from its own editor
+     stylesheets, and load order between those and a theme's admin CSS is not
+     guaranteed. Without it the panel silently stays at 280px. */
+  .interface-interface-skeleton__sidebar {
+    width: 420px !important;
+    flex-basis: 420px !important;
+    max-width: 420px !important;
+  }
+
+  .interface-interface-skeleton__sidebar .interface-complementary-area,
+  .interface-interface-skeleton__sidebar .block-editor-block-inspector,
+  .interface-interface-skeleton__sidebar > div,
+  .interface-interface-skeleton__sidebar > div > div {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * ACF tab fields in the block inspector
+ *
+ * New DevQ blocks set tabs to "placement": "top" and never hit this. Legacy
+ * blocks use "left", and ACF renders that as an absolutely positioned rail:
+ *
+ *     .acf-tab-wrap.-left .acf-tab-group {
+ *         position: absolute; left: 0; width: 20%; padding: 0 !important;
+ *     }
+ *
+ * 20% of a ~265px inspector is ~53px gone, with the tab buttons stacked in a
+ * strip and the fields beside them clipped. Since WordPress iframes the canvas,
+ * ACF pins every block to preview and this panel is the ONLY way a client can
+ * reach the fields -- so it being usable is not cosmetic.
+ *
+ * Lay the rail out as horizontal pills instead. Scoped to the sidebar: left
+ * tabs elsewhere in wp-admin must keep working.
+ * -------------------------------------------------------------------------- */
+.block-editor-block-inspector .acf-tab-wrap.-left .acf-tab-group,
+.interface-interface-skeleton__sidebar .acf-tab-wrap.-left .acf-tab-group {
+  position: static;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: auto;
+  margin: 0 0 12px;
+}
+
+.block-editor-block-inspector .acf-tab-wrap.-left .acf-tab-group li,
+.interface-interface-skeleton__sidebar .acf-tab-wrap.-left .acf-tab-group li {
+  margin: 0;
+}
+
+/* ACF puts the borders on the anchor, not the li, and only on top and bottom --
+   right for a vertical strip, wrong for a pill. */
+.block-editor-block-inspector .acf-tab-wrap.-left .acf-tab-group li a,
+.interface-interface-skeleton__sidebar .acf-tab-wrap.-left .acf-tab-group li a {
+  border-width: 1px;
+  border-radius: 3px;
+  padding: 6px 10px;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* The active tab is nudged a pixel right to sit over a vertical rail's edge. */
+.block-editor-block-inspector .acf-tab-wrap.-left .acf-tab-group li.active a,
+.interface-interface-skeleton__sidebar .acf-tab-wrap.-left .acf-tab-group li.active a {
+  margin-right: 0;
+}
+
+/* A 10px divider bar drawn above the rail, which has no meaning once the tabs
+   are horizontal. */
+.block-editor-block-inspector .acf-field + .acf-tab-wrap.-left:before,
+.interface-interface-skeleton__sidebar .acf-field + .acf-tab-wrap.-left:before {
+  display: none;
+}
+
+/* Reclaim the gutter that was reserved for the rail -- but ONLY on a group that
+   actually uses left tabs. ACF pads the block field wrapper for its own layout
+   and zeroing that everywhere would push every field flush to the panel edge.
+   Which class carries the gutter has moved between ACF versions, so match on the
+   left tab wrap being present rather than on the wrapper's own class. */
+.block-editor-block-inspector .acf-fields:has(> .acf-tab-wrap.-left),
+.interface-interface-skeleton__sidebar .acf-fields:has(> .acf-tab-wrap.-left) {
+  padding-left: 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * Field instructions
+ *
+ * ACF prints these under the label. For a client they are the only in-context
+ * help that exists, so give them enough contrast to be read rather than skimmed
+ * past. See block-rules-core.md -- every content field carries one.
+ * -------------------------------------------------------------------------- */
+.block-editor-block-inspector .acf-field .description,
+.interface-interface-skeleton__sidebar .acf-field .description {
+  color: #50575e;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* -----------------------------------------------------------------------------
+ * "How to edit your site" dashboard widget
+ * -------------------------------------------------------------------------- */
+.devq-help ol {
+  margin: 0 0 12px;
+  padding-left: 20px;
+}
+
+.devq-help li {
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+.devq-help kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  border: 1px solid #c3c4c7;
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  background: #f6f7f7;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.devq-help__footnote {
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid #f0f0f1;
+  color: #646970;
+  font-size: 12px;
+}

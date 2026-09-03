@@ -67,6 +67,12 @@ require get_template_directory() . '/functions/emailnotifications.php';
 require get_template_directory() . '/functions/page-builder.php';
 require get_template_directory() . '/functions/animations.php';
 
+// Client-facing editing experience. Both files assume the editor canvas is an
+// iframe and ACF blocks are therefore preview-only -- read the header of
+// functions/editor-canvas.php before changing either.
+require get_template_directory() . '/functions/editor-canvas.php';
+require get_template_directory() . '/functions/admin-ux.php';
+
 
 function is_blog()
 {
