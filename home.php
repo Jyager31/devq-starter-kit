@@ -1,21 +1,19 @@
 <?php
 
 /**
- * Category, tag, author, date and custom post type archives.
+ * The blog index (the page set as "Posts page" in Settings > Reading).
  *
  * SCAFFOLD DEFAULT -- rewrite to the site's design during the build.
  *
- * The archive/single style options and their six style-* variants under
- * template-parts/ were removed 2026-09-03, for the same reason the header and
- * footer ones were: a designed layout does not belong behind a dropdown, and
- * nobody ever picked anything but the default.
+ * This file exists so the blog index has an obvious home. Without it WordPress
+ * falls through to index.php, and the routing stops being readable from the
+ * file list.
  */
 
 get_header();
 
 get_template_part('template-parts/pagehead', null, array(
-	'title' => get_the_archive_title(),
-	'sub'   => get_the_archive_description(),
+	'title' => single_post_title('', false) ?: __('Blog', 'devq'),
 ));
 ?>
 
@@ -36,8 +34,8 @@ get_template_part('template-parts/pagehead', null, array(
 		</div>
 	<?php else : ?>
 		<?php get_template_part('template-parts/empty-state', null, array(
-			'title'   => __('Nothing here yet', 'devq'),
-			'message' => __('There are no posts in this section right now.', 'devq'),
+			'title'   => __('No posts yet', 'devq'),
+			'message' => __('Once posts are published they will appear here.', 'devq'),
 		)); ?>
 	<?php endif; ?>
 </div>

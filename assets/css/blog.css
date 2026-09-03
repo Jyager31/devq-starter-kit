@@ -1,0 +1,295 @@
+/* -----------------------------------------------------------------------------
+ * Default templates: blog index, archives, single post, search, 404.
+ *
+ * SCAFFOLD DEFAULTS. Every one of these is meant to be rewritten to the site's
+ * design during the build. They exist so that a site which never got round to it
+ * still ships something presentable instead of unstyled WordPress -- these are
+ * the pages nobody designs and everybody eventually lands on.
+ *
+ * One stylesheet rather than a <style> block per template: the five of them share
+ * a card, a page banner and a prose measure, and when that lived inline they had
+ * already drifted into two different card designs.
+ *
+ * Everything reads from the :root tokens in style.css, so setting the palette
+ * there restyles all five at once. No FontAwesome -- the kit ships it commented
+ * out in header.php, so any icon class here would render as blank space.
+ * -------------------------------------------------------------------------- */
+
+/* -----------------------------------------------------------------------------
+ * Page banner
+ * -------------------------------------------------------------------------- */
+.devq-pagehead {
+  background-color: var(--primary);
+  padding: var(--section-padding-top) 0 var(--section-padding-bottom);
+}
+
+.devq-pagehead h1 {
+  margin: 0;
+  color: #fff;
+}
+
+.devq-pagehead__eyebrow {
+  display: inline-block;
+  margin-bottom: var(--spacing-small);
+  padding: 4px 12px;
+  border-radius: var(--button-radius);
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-family: var(--font2);
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.devq-pagehead__sub {
+  max-width: 60ch;
+  margin: var(--spacing-small) 0 0;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.devq-pagehead__meta {
+  margin-top: var(--spacing-small);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.95rem;
+}
+
+.devq-pagehead__meta span + span::before {
+  content: "·";
+  margin: 0 8px;
+}
+
+/* -----------------------------------------------------------------------------
+ * Card grid
+ * -------------------------------------------------------------------------- */
+.devq-section {
+  padding: var(--section-padding-top) 0 var(--section-padding-bottom);
+}
+
+.devq-cardgrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-medium);
+}
+
+.devq-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--button-radius);
+  background: #fff;
+  transition: var(--transition-default);
+}
+
+.devq-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.devq-card__link {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.devq-card__image {
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.devq-card__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.devq-card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: var(--spacing-medium);
+}
+
+.devq-card__date {
+  color: var(--secondary);
+  font-family: var(--font2);
+  font-size: 0.85rem;
+}
+
+.devq-card__body h2 {
+  margin: 8px 0 var(--spacing-small);
+  font-size: 1.35rem;
+}
+
+.devq-card__excerpt {
+  flex: 1;
+}
+
+.devq-card__excerpt p {
+  margin: 0;
+}
+
+.devq-card__more {
+  margin-top: var(--spacing-small);
+  color: var(--primary);
+  font-family: var(--font2);
+  font-weight: 600;
+}
+
+.devq-card__more::after {
+  content: " \2192";
+}
+
+/* -----------------------------------------------------------------------------
+ * Post body
+ * -------------------------------------------------------------------------- */
+.devq-prose {
+  max-width: 72ch;
+  margin: 0 auto;
+}
+
+.devq-prose > *:first-child {
+  margin-top: 0;
+}
+
+.devq-prose img {
+  height: auto;
+  border-radius: var(--button-radius);
+}
+
+/* -----------------------------------------------------------------------------
+ * Prev / next
+ * -------------------------------------------------------------------------- */
+.devq-postnav {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-medium);
+  max-width: 72ch;
+  margin: var(--spacing-large) auto 0;
+  padding-top: var(--spacing-medium);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.devq-postnav a {
+  max-width: 45%;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Keyed to the actual direction, not :last-child -- a post with only a previous
+ * link would otherwise have it shoved over to the right. */
+.devq-postnav__next {
+  margin-left: auto;
+  text-align: right;
+}
+
+.devq-postnav__label {
+  display: block;
+  color: var(--secondary);
+  font-family: var(--font2);
+  font-size: 0.85rem;
+}
+
+.devq-postnav__title {
+  display: block;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* -----------------------------------------------------------------------------
+ * Pagination
+ * -------------------------------------------------------------------------- */
+.devq-pagination {
+  margin-top: var(--spacing-large);
+}
+
+.devq-pagination .page-numbers {
+  display: inline-block;
+  min-width: 40px;
+  margin: 0 2px;
+  padding: 8px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: var(--button-radius);
+  color: inherit;
+  text-align: center;
+  text-decoration: none;
+}
+
+.devq-pagination .page-numbers.current {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+
+/* -----------------------------------------------------------------------------
+ * Empty state / search form
+ * -------------------------------------------------------------------------- */
+.devq-empty {
+  max-width: 60ch;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.devq-searchform {
+  display: flex;
+  max-width: 480px;
+  margin: var(--spacing-medium) auto 0;
+}
+
+.devq-searchform .search-field {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-right: 0;
+  border-radius: var(--button-radius) 0 0 var(--button-radius);
+  font-family: var(--font2);
+  font-size: var(--body-size);
+}
+
+.devq-searchform .search-submit {
+  padding: 10px 20px;
+  border: 0;
+  border-radius: 0 var(--button-radius) var(--button-radius) 0;
+  background: var(--primary);
+  color: #fff;
+  font-family: var(--font2);
+  cursor: pointer;
+}
+
+.devq-quicklinks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-small);
+  margin-top: var(--spacing-large);
+}
+
+/* -----------------------------------------------------------------------------
+ * Breakpoints -- 1199 and 767, per the kit. Never 991.
+ * -------------------------------------------------------------------------- */
+@media (max-width: 1199px) {
+  .devq-cardgrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .devq-cardgrid {
+    grid-template-columns: 1fr;
+  }
+
+  .devq-postnav {
+    flex-direction: column;
+  }
+
+  .devq-postnav a,
+  .devq-postnav__next {
+    max-width: 100%;
+    margin-left: 0;
+    text-align: left;
+  }
+}

@@ -59,6 +59,16 @@ function devqbase_scripts()
   // Main theme stylesheet (required)
   wp_enqueue_style('devq-style', $theme_uri . '/style.css', array(), filemtime($theme_dir . '/style.css'));
 
+  // Default templates: blog index, archives, single post, search, 404.
+  //
+  // These are the pages nobody designs and everybody eventually lands on, so the
+  // kit ships presentable defaults for them. Loaded only on those views -- a
+  // block-built page never needs it. If a build replaces all five with bespoke
+  // templates, drop this and the stylesheet with it.
+  if (is_home() || is_archive() || is_singular('post') || is_search() || is_404()) {
+    wp_enqueue_style('devq-blog', $theme_uri . '/assets/css/blog.css', array('devq-style'), filemtime($theme_dir . '/assets/css/blog.css'));
+  }
+
   // --- Conditionally loaded CSS (auto-detected from page blocks) ---
 
   $needs_slick = devq_page_has_any_block(array('heroslider', 'testimonials'));
