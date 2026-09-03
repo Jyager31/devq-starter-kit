@@ -62,7 +62,8 @@ acfjson/              4 settings field groups (branding, contact, social,
                       scripts) + your block groups
 assets/               css: aos, reflex, slick, beefup, magnific,
                            editor-canvas (iframe), admin-ux (wp-admin)
-                      js:  mobile-menu, custom, editor-inspector, editor-onboarding,
+                      js:  mobile-menu, custom, editor-insert, editor-inspector,
+                           editor-onboarding,
                            vendor libs
 blocks/               EMPTY. Your blocks go here.
 functions/            acf, admin-ux, animations, blocks, editor-canvas,
@@ -132,6 +133,10 @@ The kit ships that as a working experience rather than leaving each build to red
 - `assets/css/admin-ux.css` makes the inspector usable: 480px above 1200px, and one field per
   row while it is under 560px (ACF's 50/25% widths clip an input badly in a narrow panel; once it
   is wide they come back).
+- `assets/js/editor-insert.js` adds **Add section above / below** to the block toolbar. Core's
+  between-blocks "+" only appears while the pointer is in the gap between two sections, and its
+  Options menu inserts a paragraph; these open the section list with the insertion point already
+  set.
 - `assets/js/editor-inspector.js` lets the client drag that panel wider, remembers it, and puts
   an **Edit fields** pencil in the block toolbar that opens it wide in one click -- the closest
   thing left to clicking a block and typing into it. Wide is a mode, not a saved width: the

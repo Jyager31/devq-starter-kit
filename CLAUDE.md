@@ -90,6 +90,11 @@ So on 7.1+:
   it. The pencil in the block toolbar -- "Edit fields" -- opens the inspector wide in one click,
   reads as pressed while it is, and hands the preview back on the second click. Added through
   `editor.BlockEdit`, not by patching ACF.
+- **Adding a section between two others needs its own control.** Core's between-blocks "+" only
+  exists while the pointer is inside the gap between two blocks, and it is not in the DOM at rest,
+  so it cannot be pinned open with CSS. Its Options menu inserts a paragraph. `editor-insert.js`
+  puts "Add section above / below" on the block toolbar, opening the inserter with
+  `setIsInserterOpened({ rootClientId, insertionIndex })` so the pick lands in the right place.
 - **Fields stack one per row only while the panel is narrow** (`.devq-inspector-narrow`, under
   560px). Wide enough and ACF's own 50/25% widths are worth having back -- a text input stretched
   across 1100px is its own kind of bad.
@@ -110,6 +115,7 @@ What the theme does about it:
 | Left-placement ACF tabs eat 53px of a 265px inspector | `assets/css/admin-ux.css`, scoped to the sidebar |
 | ACF's 50/25% field widths clip inputs in a narrow panel (a number field with a unit shows one digit) | `assets/css/admin-ux.css` -- one field per row under 560px, `!important` over ACF's inline `style="width:50%"` |
 | A repeater-heavy block needs more panel than a heading-and-button one | `assets/js/editor-inspector.js` -- drag, snap, and the toolbar button |
+| The gap to drop a new section into is a few pixels of block spacing, in a preview you cannot type into | `assets/js/editor-insert.js` -- "Add section above / below" on the toolbar |
 | An empty block renders nothing and is invisible in both places | `devq_block_placeholder()` |
 
 **The token contract.** The `:root` block at the top of `style.css` is the only place tokens

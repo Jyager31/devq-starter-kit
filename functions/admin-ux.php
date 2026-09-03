@@ -59,6 +59,17 @@ function devq_admin_ux_assets($hook)
         true
     );
 
+    // "Add section above / below" on the block toolbar. Core's between-blocks
+    // "+" only exists while the pointer is in the gap between two sections, and
+    // its Options menu inserts a paragraph rather than opening the section list.
+    wp_enqueue_script(
+        'devq-editor-insert',
+        $theme_uri . '/assets/js/editor-insert.js',
+        array('wp-hooks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-data'),
+        filemtime($theme_dir . '/assets/js/editor-insert.js'),
+        true
+    );
+
     devq_maybe_prime_list_view($theme_uri, $theme_dir);
 }
 add_action('admin_enqueue_scripts', 'devq_admin_ux_assets');
@@ -152,6 +163,7 @@ function devq_help_dashboard_widget_render()
         ),
         __('Click a section in that list. Its settings open in the <strong>Block</strong> tab on the right — that panel is where all the text, images and links for that section live.', 'devq'),
         __('Change what you need, then click <strong>Update</strong> at the top right. The middle of the screen is a preview of the section, so it will not let you type into it directly. That is normal.', 'devq'),
+        __('To add a new section, click the section it should sit next to. In the small toolbar that appears above it, the two arrow buttons add a section <strong>above</strong> or <strong>below</strong> that one, and a list of sections opens for you to pick from.', 'devq'),
         __('A dashed grey box means that section has no content in it yet. Sections like that do not appear on the live site at all until you fill them in.', 'devq'),
         __('Your logo, phone number, address and social links are the same on every page, so they are set once under <strong>Theme Settings</strong> in the left menu rather than page by page.', 'devq'),
     );
