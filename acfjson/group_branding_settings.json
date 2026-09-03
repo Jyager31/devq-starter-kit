@@ -22,7 +22,10 @@
             "min_width": "",
             "min_height": "",
             "max_width": "",
-            "max_height": ""
+            "max_height": "",
+            "min_size": 0,
+            "max_size": 0,
+            "mime_types": ""
         },
         {
             "key": "field_branding_alt_logo",
@@ -44,7 +47,10 @@
             "min_width": "",
             "min_height": "",
             "max_width": "",
-            "max_height": ""
+            "max_height": "",
+            "min_size": 0,
+            "max_size": 0,
+            "mime_types": ""
         },
         {
             "key": "field_branding_favicon",
@@ -66,7 +72,10 @@
             "min_width": "",
             "min_height": "",
             "max_width": "",
-            "max_height": ""
+            "max_height": "",
+            "min_size": 0,
+            "max_size": 0,
+            "mime_types": ""
         },
         {
             "key": "field_branding_company_name",
@@ -103,24 +112,6 @@
                 "id": ""
             },
             "return_format": "array"
-        },
-        {
-            "key": "field_branding_guidelines_pdf",
-            "label": "Brand Guidelines",
-            "name": "branding_guidelines_pdf",
-            "aria-label": "",
-            "type": "file",
-            "instructions": "Upload brand guidelines PDF for reference.",
-            "required": 0,
-            "conditional_logic": 0,
-            "wrapper": {
-                "width": "50",
-                "class": "",
-                "id": ""
-            },
-            "return_format": "array",
-            "library": "all",
-            "mime_types": "pdf"
         }
     ],
     "location": [
@@ -140,5 +131,7 @@
     "hide_on_screen": "",
     "active": true,
     "description": "Brand identity settings including logos, favicon, company name, and header CTA.",
-    "show_in_rest": 0
+    "show_in_rest": 0,
+    "display_title": "",
+    "modified": 1788457311
 }
