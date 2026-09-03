@@ -12,25 +12,32 @@
  */
 
 $verbose = in_array('--verbose', $args ?? array());
-$pass = 0;
-$warn = 0;
-$fail = 0;
+
+// wp eval-file includes this file inside a function, so a plain `$pass = 0` here
+// is a LOCAL variable while `global $pass` in the helpers below points at
+// $GLOBALS. The counters stayed 0 no matter what ran, and the summary printed
+// "All checks passed!" underneath a list of failures -- including the one that
+// says the reference block is still installed. Initialise them where the helpers
+// actually read them, under names nothing else in WP is using.
+$GLOBALS['devq_health_pass'] = 0;
+$GLOBALS['devq_health_warn'] = 0;
+$GLOBALS['devq_health_fail'] = 0;
 
 function health_pass($msg) {
-    global $pass;
-    $pass++;
+    global $devq_health_pass;
+    $devq_health_pass++;
     WP_CLI::log(WP_CLI::colorize("%G[PASS]%n {$msg}"));
 }
 
 function health_warn($msg) {
-    global $warn;
-    $warn++;
+    global $devq_health_warn;
+    $devq_health_warn++;
     WP_CLI::log(WP_CLI::colorize("%Y[WARN]%n {$msg}"));
 }
 
 function health_fail($msg) {
-    global $fail;
-    $fail++;
+    global $devq_health_fail;
+    $devq_health_fail++;
     WP_CLI::log(WP_CLI::colorize("%R[FAIL]%n {$msg}"));
 }
 
@@ -475,6 +482,10 @@ WP_CLI::log('');
 
 WP_CLI::log(WP_CLI::colorize('%B=== Summary ===%n'));
 WP_CLI::log('');
+
+$pass  = $GLOBALS['devq_health_pass'];
+$warn  = $GLOBALS['devq_health_warn'];
+$fail  = $GLOBALS['devq_health_fail'];
 
 $total = $pass + $warn + $fail;
 WP_CLI::log(WP_CLI::colorize("%G{$pass} passed%n  |  %Y{$warn} warnings%n  |  %R{$fail} failures%n  |  {$total} total checks"));
