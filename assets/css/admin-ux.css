@@ -73,10 +73,16 @@
  * demo block, 19 of 35 fields are half width.
  *
  * A 50/50 pair is a fine layout on a full-width options screen and a bad one in
- * a side panel: the pair splits whatever the panel is, so a number input with a
- * unit appended ("8" + "ms") clips to a single digit, and a label wraps to three
- * lines above a field two words wide. One field per row, always, so nothing
- * depends on how wide the client happens to have dragged the panel.
+ * a narrow side panel: the pair splits whatever the panel is, so a number input
+ * with a unit appended ("8" + "ms") clips to a single digit, and a label wraps to
+ * three lines above a field two words wide.
+ *
+ * So stack them -- but only while the panel is actually narrow. Once it is
+ * dragged or thrown wide there is room for ACF's designed widths, and a text
+ * input stretched across 1100px is its own kind of bad. The switch is
+ * .devq-inspector-narrow on the body, set by assets/js/editor-inspector.js below
+ * 560px (keep the two numbers in step). A container query would read better but
+ * needs container-type on the sidebar, which contains fixed-position children.
  *
  * Scoped to the sidebar. Theme Settings pages are full-width admin screens where
  * ACF's own widths are right, and they must keep them.
@@ -85,15 +91,11 @@
  * repeater's cells, which are children of a row rather than of a fields wrapper
  * -- those are a grid and forcing each cell to 100% would break the row.
  * -------------------------------------------------------------------------- */
-.interface-interface-skeleton__sidebar .acf-fields > .acf-field,
-.block-editor-block-inspector .acf-fields > .acf-field {
+body.devq-inspector-narrow .interface-interface-skeleton__sidebar .acf-fields > .acf-field,
+body.devq-inspector-narrow .block-editor-block-inspector .acf-fields > .acf-field {
   width: 100% !important;
-}
-
-/* ACF draws the divider between two fields sitting side by side. Once they are
-   stacked, that border is a line down the left edge of every field. */
-.interface-interface-skeleton__sidebar .acf-fields > .acf-field,
-.block-editor-block-inspector .acf-fields > .acf-field {
+  /* ACF draws the divider between two fields sitting side by side. Once they are
+     stacked, that border is a line down the left edge of every field. */
   border-left-width: 0 !important;
 }
 
@@ -116,15 +118,35 @@
 .devq-inspector-grip {
   position: fixed;
   z-index: 100000;
-  width: 6px;
+  width: 8px;
   cursor: col-resize;
-  background: transparent;
+  /* Visible at rest. An invisible strip is not a control: someone who has thrown
+     the panel wide and wants it back has to already know the handle is there. */
+  background: #e0e0e0;
   transition: background 120ms ease;
+}
+
+/* Three dots down the middle, so it reads as a grab handle rather than a border. */
+.devq-inspector-grip:after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 18px;
+  transform: translate(-50%, -50%);
+  border-radius: 1px;
+  background: repeating-linear-gradient(#8c8f94 0 2px, transparent 2px 5px);
 }
 
 .devq-inspector-grip:hover,
 body.devq-inspector-resizing .devq-inspector-grip {
   background: var(--wp-admin-theme-color, #3858e9);
+}
+
+.devq-inspector-grip:hover:after,
+body.devq-inspector-resizing .devq-inspector-grip:after {
+  background: repeating-linear-gradient(#fff 0 2px, transparent 2px 5px);
 }
 
 body.devq-inspector-resizing {

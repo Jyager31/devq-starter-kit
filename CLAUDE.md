@@ -79,13 +79,20 @@ in either document) **and** core's own layout collapses, because core queries
 So on 7.1+:
 
 - **The inspector is the only editing surface.** `admin-ux.css` takes it from 280px to 480px
-  above 1200px and stacks every field one per row. Width is `--devq-inspector-w`, so
-  `assets/js/editor-inspector.js` can drag it (double-click the edge snaps to two thirds of the
-  window, capped at 1100px) and remember it per browser.
+  above 1200px. Width is `--devq-inspector-w`, so `assets/js/editor-inspector.js` can drag it and
+  remember it per browser.
+- **Two widths, and only one of them sticks.** The base width is what the client dragged, and it
+  persists. Wide is a mode you are in while editing one block, and it must NOT persist -- an
+  earlier build saved it, and one click of the pencil then left every future session opening at
+  1100px with nothing obvious to bring it back. Anything that can enter wide can leave it: the
+  pencil, double-clicking the handle, Escape, a reload.
 - **The gesture is gone, so put it back.** Before 7.1 a client clicked the block and typed into
   it. The pencil in the block toolbar -- "Edit fields" -- opens the inspector wide in one click,
-  and a second click hands the preview back. Added through `editor.BlockEdit`, not by patching
-  ACF.
+  reads as pressed while it is, and hands the preview back on the second click. Added through
+  `editor.BlockEdit`, not by patching ACF.
+- **Fields stack one per row only while the panel is narrow** (`.devq-inspector-narrow`, under
+  560px). Wide enough and ACF's own 50/25% widths are worth having back -- a text input stretched
+  across 1100px is its own kind of bad.
 - **The canvas preview must be correct**, because it is all the client sees.
 - **List View is how a block gets selected.** `functions/admin-ux.php` opens it once per user.
 
@@ -101,7 +108,7 @@ What the theme does about it:
 | Full-bleed blocks preview boxed at the content width, gutters either side | `assets/css/editor-canvas.css` |
 | The canvas runs no JS, so AOS leaves animated blocks at opacity 0 | `assets/css/editor-canvas.css` |
 | Left-placement ACF tabs eat 53px of a 265px inspector | `assets/css/admin-ux.css`, scoped to the sidebar |
-| ACF's 50/25% field widths clip inputs in a side panel (a number field with a unit shows one digit) | `assets/css/admin-ux.css` -- one field per row, `!important` over ACF's inline `style="width:50%"` |
+| ACF's 50/25% field widths clip inputs in a narrow panel (a number field with a unit shows one digit) | `assets/css/admin-ux.css` -- one field per row under 560px, `!important` over ACF's inline `style="width:50%"` |
 | A repeater-heavy block needs more panel than a heading-and-button one | `assets/js/editor-inspector.js` -- drag, snap, and the toolbar button |
 | An empty block renders nothing and is invisible in both places | `devq_block_placeholder()` |
 

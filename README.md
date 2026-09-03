@@ -130,10 +130,12 @@ The kit ships that as a working experience rather than leaving each build to red
 - `assets/css/editor-canvas.css` undoes front-end behaviour with no JS behind it in the
   editor, so an AOS block does not preview as an empty band.
 - `assets/css/admin-ux.css` makes the inspector usable: 480px above 1200px, and one field per
-  row (ACF's 50/25% widths clip an input badly in a side panel).
+  row while it is under 560px (ACF's 50/25% widths clip an input badly in a narrow panel; once it
+  is wide they come back).
 - `assets/js/editor-inspector.js` lets the client drag that panel wider, remembers it, and puts
   an **Edit fields** pencil in the block toolbar that opens it wide in one click -- the closest
-  thing left to clicking a block and typing into it.
+  thing left to clicking a block and typing into it. Wide is a mode, not a saved width: the
+  pencil, Escape, double-clicking the handle or a reload all bring the panel back.
 - `devq_block_placeholder()` gives an empty block a labelled dashed box in the editor. Without
   it a block with an empty repeater renders nothing anywhere and nobody can see it exists.
 - List View opens by default the first time a user edits, once.
