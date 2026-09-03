@@ -147,3 +147,25 @@ add_action('init', function () {
  *     return $blocks;
  * });
  */
+
+/**
+ * Kit Demo -- the reference block. DELETE BEFORE LAUNCH.
+ *
+ * It exists so the block pattern can be reviewed on a fresh scaffold, and so the
+ * editor canvas has something real to preview: with blocks/ empty there is
+ * nothing to check the canvas styling against.
+ *
+ * It is NOT a starting point for a real block. Every section of a site gets a
+ * block designed for that site.
+ *
+ * Registration is guarded on the folder, so `rm -rf blocks/kitdemo` removes it
+ * completely -- no dangling filter to clean up. scripts/site-health.php fails
+ * while it is still present.
+ */
+add_filter('devq_blocks', function ($blocks) {
+	if (is_dir(get_template_directory() . '/blocks/kitdemo')) {
+		$blocks[] = 'Kit Demo';
+	}
+
+	return $blocks;
+});

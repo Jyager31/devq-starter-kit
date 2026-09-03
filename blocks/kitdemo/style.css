@@ -1,0 +1,162 @@
+/* -----------------------------------------------------------------------------
+ * Kit Demo block
+ *
+ * REFERENCE BLOCK -- delete blocks/kitdemo/ before launch.
+ *
+ * Everything here reads from the :root tokens in style.css. No hard-coded colour,
+ * font or spacing value: change the palette once and this block follows. No
+ * clamp() on font sizes -- the kit sets type at the breakpoints, not fluidly.
+ *
+ * This file is also what the block editor canvas loads. functions/editor-canvas.php
+ * hands every REGISTERED block's style.css to add_editor_style(), so the preview
+ * a client sees in the editor is styled by this exact file.
+ * -------------------------------------------------------------------------- */
+
+.kitdemo-block {
+    padding: var(--section-padding-top) 0 var(--section-padding-bottom);
+}
+
+/* -----------------------------------------------------------------------------
+ * Intro
+ * -------------------------------------------------------------------------- */
+.kitdemo-intro {
+    max-width: 720px;
+    margin: 0 auto var(--spacing-large);
+    text-align: center;
+}
+
+.kitdemo-eyebrow {
+    display: inline-block;
+    margin-bottom: var(--spacing-small);
+    color: var(--primary);
+    font-family: var(--font2);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.kitdemo-heading {
+    margin: 0;
+}
+
+.kitdemo-subheading {
+    margin: var(--spacing-small) 0 0;
+    color: var(--secondary);
+    font-size: 1.1rem;
+}
+
+.kitdemo-content {
+    max-width: 720px;
+    margin: 0 auto var(--spacing-large);
+}
+
+/* -----------------------------------------------------------------------------
+ * Card grid
+ *
+ * The column count comes from the Content tab. Below 1199 it steps to 2 and
+ * below 767 to 1, whatever the setting -- a 4-up grid on a phone is unreadable
+ * and the client should not be able to choose it by accident.
+ * -------------------------------------------------------------------------- */
+.kitdemo-grid {
+    display: grid;
+    gap: var(--spacing-medium);
+}
+
+.kitdemo-cols-2 .kitdemo-grid {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.kitdemo-cols-3 .kitdemo-grid {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.kitdemo-cols-4 .kitdemo-grid {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.kitdemo-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: var(--button-radius);
+    background: #fff;
+    transition: var(--transition-default);
+}
+
+.kitdemo-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.kitdemo-card-image {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.kitdemo-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.kitdemo-card-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: var(--spacing-medium);
+}
+
+.kitdemo-card-title {
+    margin: 0 0 var(--spacing-small);
+    font-size: 1.25rem;
+}
+
+.kitdemo-card-description {
+    flex: 1;
+    margin: 0;
+}
+
+.kitdemo-card-link {
+    margin-top: var(--spacing-small);
+    color: var(--primary);
+    font-family: var(--font2);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.kitdemo-card-link::after {
+    content: " \2192";
+}
+
+/* -----------------------------------------------------------------------------
+ * CTA
+ * -------------------------------------------------------------------------- */
+.kitdemo-cta {
+    margin-top: var(--spacing-large);
+    text-align: center;
+}
+
+/* -----------------------------------------------------------------------------
+ * Breakpoints -- 1199 and 767, per the kit. Never 991.
+ * -------------------------------------------------------------------------- */
+@media (max-width: 1199px) {
+    .kitdemo-cols-3 .kitdemo-grid,
+    .kitdemo-cols-4 .kitdemo-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 767px) {
+    .kitdemo-cols-2 .kitdemo-grid,
+    .kitdemo-cols-3 .kitdemo-grid,
+    .kitdemo-cols-4 .kitdemo-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .kitdemo-intro {
+        margin-bottom: var(--spacing-medium);
+    }
+}

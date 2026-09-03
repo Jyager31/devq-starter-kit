@@ -1,0 +1,550 @@
+{
+    "key": "group_kitdemo_block",
+    "title": "Kit Demo Block",
+    "fields": [
+        {
+            "key": "field_kitdemo_content_tab",
+            "label": "Content",
+            "name": "",
+            "aria-label": "",
+            "type": "tab",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "100",
+                "class": "",
+                "id": ""
+            },
+            "placement": "top",
+            "endpoint": 0
+        },
+        {
+            "key": "field_kitdemo_eyebrow",
+            "label": "Small label above the heading",
+            "name": "eyebrow",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "Two or three words, e.g. \"Why us\". Leave blank to hide it.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "50",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "maxlength": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": ""
+        },
+        {
+            "key": "field_kitdemo_heading",
+            "label": "Heading",
+            "name": "heading",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "The main title for this section. One short line reads best.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "50",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "maxlength": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": ""
+        },
+        {
+            "key": "field_kitdemo_subheading",
+            "label": "Supporting line under the heading",
+            "name": "subheading",
+            "aria-label": "",
+            "type": "textarea",
+            "instructions": "One or two sentences. Leave blank to hide it.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "100",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "maxlength": "",
+            "rows": 2,
+            "placeholder": "",
+            "new_lines": ""
+        },
+        {
+            "key": "field_kitdemo_content",
+            "label": "Body copy",
+            "name": "content",
+            "aria-label": "",
+            "type": "wysiwyg",
+            "instructions": "Optional longer text shown above the cards. Leave blank to hide it.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "100",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "tabs": "all",
+            "toolbar": "full",
+            "media_upload": 1,
+            "delay": 0
+        },
+        {
+            "key": "field_kitdemo_columns",
+            "label": "Cards per row",
+            "name": "columns",
+            "aria-label": "",
+            "type": "select",
+            "instructions": "Desktop only. Tablets always show 2 and phones always show 1, whatever you pick here.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "50",
+                "class": "",
+                "id": ""
+            },
+            "choices": {
+                "2": "2",
+                "3": "3",
+                "4": "4"
+            },
+            "default_value": "3",
+            "return_format": "value",
+            "multiple": 0,
+            "allow_null": 0,
+            "ui": 0,
+            "ajax": 0,
+            "placeholder": ""
+        },
+        {
+            "key": "field_kitdemo_button",
+            "label": "Button below the cards",
+            "name": "button",
+            "aria-label": "",
+            "type": "link",
+            "instructions": "Optional. Leave the URL blank to hide the button.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "50",
+                "class": "",
+                "id": ""
+            },
+            "return_format": "array"
+        },
+        {
+            "key": "field_kitdemo_cards",
+            "label": "Cards",
+            "name": "cards",
+            "aria-label": "",
+            "type": "repeater",
+            "instructions": "One row per card. With \"Cards per row\" set to 3, use 3 or 6 rows so the grid fills evenly. If this is empty the whole section is hidden on the live site.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "100",
+                "class": "",
+                "id": ""
+            },
+            "layout": "block",
+            "min": 0,
+            "max": 0,
+            "collapsed": "field_kitdemo_card_title",
+            "button_label": "Add card",
+            "sub_fields": [
+                {
+                    "key": "field_kitdemo_card_image",
+                    "label": "Image",
+                    "name": "image",
+                    "aria-label": "",
+                    "type": "image",
+                    "instructions": "Landscape, at least 1200px wide. It is cropped to 16:9, so anything taller than it is wide loses the top and bottom.",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "100",
+                        "class": "",
+                        "id": ""
+                    },
+                    "return_format": "id",
+                    "preview_size": "medium",
+                    "library": "all",
+                    "min_width": "",
+                    "min_height": "",
+                    "min_size": "",
+                    "max_width": "",
+                    "max_height": "",
+                    "max_size": "",
+                    "mime_types": ""
+                },
+                {
+                    "key": "field_kitdemo_card_title",
+                    "label": "Title",
+                    "name": "title",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "A few words. Shown in bold at the top of the card.",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "50",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "maxlength": "",
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": ""
+                },
+                {
+                    "key": "field_kitdemo_card_link",
+                    "label": "Link",
+                    "name": "link",
+                    "aria-label": "",
+                    "type": "link",
+                    "instructions": "Optional. Leave the URL blank and no link shows on this card.",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "50",
+                        "class": "",
+                        "id": ""
+                    },
+                    "return_format": "array"
+                },
+                {
+                    "key": "field_kitdemo_card_description",
+                    "label": "Description",
+                    "name": "description",
+                    "aria-label": "",
+                    "type": "textarea",
+                    "instructions": "One or two sentences. Keep them a similar length across cards so the row lines up.",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "100",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "maxlength": "",
+                    "rows": 3,
+                    "placeholder": "",
+                    "new_lines": ""
+                }
+            ]
+        },
+        {
+            "key": "field_kitdemo_options_tab",
+            "label": "Options",
+            "name": "",
+            "aria-label": "",
+            "type": "tab",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "100",
+                "class": "",
+                "id": ""
+            },
+            "placement": "top",
+            "endpoint": 0
+        },
+        {
+            "key": "field_kitdemo_margin_top",
+            "label": "Margin Top",
+            "name": "margin_top",
+            "aria-label": "",
+            "type": "select",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "50",
+                "class": "",
+                "id": ""
+            },
+            "choices": {
+                "": "Default",
+                "none": "None",
+                "small": "Small",
+                "medium": "Medium",
+                "large": "Large",
+                "other": "Other"
+            },
+            "default_value": "",
+            "return_format": "value",
+            "multiple": 0,
+            "allow_null": 0,
+            "ui": 0,
+            "ajax": 0,
+            "placeholder": ""
+        },
+        {
+            "key": "field_kitdemo_margin_top_other",
+            "label": "Margin Top Other",
+            "name": "margin_top_other",
+            "aria-label": "",
+            "type": "number",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": [
+                [
+                    {
+                        "field": "field_kitdemo_margin_top",
+                        "operator": "==",
+                        "value": "other"
+                    }
+                ]
+            ],
+            "wrapper": {
+                "width": "50",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "min": 0,
+            "max": "",
+            "step": "",
+            "prepend": "",
+            "append": "px",
+            "placeholder": ""
+        },
+        {
+            "key": "field_kitdemo_margin_bottom",
+            "label": "Margin Bottom",
+            "name": "margin_bottom",
+            "aria-label": "",
+            "type": "select",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "50",
+                "class": "",
+                "id": ""
+            },
+            "choices": {
+                "": "Default",
+                "none": "None",
+                "small": "Small",
+                "medium": "Medium",
+                "large": "Large",
+                "other": "Other"
+            },
+            "default_value": "",
+            "return_format": "value",
+            "multiple": 0,
+            "allow_null": 0,
+            "ui": 0,
+            "ajax": 0,
+            "placeholder": ""
+        },
+        {
+            "key": "field_kitdemo_margin_bottom_other",
+            "label": "Margin Bottom Other",
+            "name": "margin_bottom_other",
+            "aria-label": "",
+            "type": "number",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": [
+                [
+                    {
+                        "field": "field_kitdemo_margin_bottom",
+                        "operator": "==",
+                        "value": "other"
+                    }
+                ]
+            ],
+            "wrapper": {
+                "width": "50",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "min": 0,
+            "max": "",
+            "step": "",
+            "prepend": "",
+            "append": "px",
+            "placeholder": ""
+        },
+        {
+            "key": "field_kitdemo_custom_class",
+            "label": "Custom Class",
+            "name": "custom_class",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "50",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "maxlength": "",
+            "placeholder": "",
+            "prepend": ".",
+            "append": ""
+        },
+        {
+            "key": "field_kitdemo_custom_id",
+            "label": "Custom ID",
+            "name": "custom_id",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "50",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "maxlength": "",
+            "placeholder": "",
+            "prepend": "#",
+            "append": ""
+        },
+        {
+            "key": "field_kitdemo_animation_tab",
+            "label": "Animation",
+            "name": "",
+            "aria-label": "",
+            "type": "tab",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "100",
+                "class": "",
+                "id": ""
+            },
+            "placement": "top",
+            "endpoint": 0
+        },
+        {
+            "key": "field_kitdemo_animation_type",
+            "label": "Animation Type",
+            "name": "animation_type",
+            "aria-label": "",
+            "type": "select",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "50",
+                "class": "",
+                "id": ""
+            },
+            "choices": {
+                "recommended": "Recommended",
+                "fade-up": "Fade Up",
+                "fade-down": "Fade Down",
+                "fade-left": "Fade Left",
+                "fade-right": "Fade Right",
+                "fade-up-right": "Fade Up Right",
+                "fade-up-left": "Fade Up Left",
+                "fade-down-right": "Fade Down Right",
+                "fade-down-left": "Fade Down Left",
+                "flip-up": "Flip Up",
+                "flip-down": "Flip Down",
+                "flip-left": "Flip Left",
+                "flip-right": "Flip Right",
+                "slide-up": "Slide Up",
+                "slide-down": "Slide Down",
+                "slide-left": "Slide Left",
+                "slide-right": "Slide Right",
+                "zoom-in": "Zoom In",
+                "zoom-in-up": "Zoom In Up",
+                "zoom-in-down": "Zoom In Down",
+                "zoom-in-left": "Zoom In Left",
+                "zoom-in-right": "Zoom In Right",
+                "zoom-out": "Zoom Out"
+            },
+            "default_value": "recommended",
+            "return_format": "value",
+            "multiple": 0,
+            "allow_null": 0,
+            "ui": 0,
+            "ajax": 0,
+            "placeholder": ""
+        },
+        {
+            "key": "field_kitdemo_animation_duration",
+            "label": "Animation Duration",
+            "name": "animation_duration",
+            "aria-label": "",
+            "type": "number",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "25",
+                "class": "",
+                "id": ""
+            },
+            "default_value": 800,
+            "min": 300,
+            "max": 3000,
+            "step": "",
+            "prepend": "",
+            "append": "ms",
+            "placeholder": ""
+        },
+        {
+            "key": "field_kitdemo_disable_animation",
+            "label": "Disable Animation",
+            "name": "disable_animation",
+            "aria-label": "",
+            "type": "true_false",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "25",
+                "class": "",
+                "id": ""
+            },
+            "default_value": 0,
+            "message": "",
+            "ui": 0,
+            "ui_on_text": "",
+            "ui_off_text": ""
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "block",
+                "operator": "==",
+                "value": "acf/kitdemo"
+            }
+        ]
+    ],
+    "menu_order": 0,
+    "position": "normal",
+    "style": "default",
+    "label_placement": "top",
+    "instruction_placement": "label",
+    "hide_on_screen": "",
+    "active": true,
+    "description": "Reference block shipped with the kit. Delete blocks/kitdemo/ before launch.",
+    "show_in_rest": 0
+}

@@ -225,29 +225,6 @@ if (function_exists('get_field')) {
         health_warn('No contact phone set (Theme Settings > Contact)');
     }
 
-    // Colors
-    $primary = get_field('styles_primary_color', 'option');
-    $secondary = get_field('styles_secondary_color', 'option');
-
-    if ($primary && $primary !== '#007bff') {
-        health_pass("Primary color customized: {$primary}");
-    } else {
-        health_warn('Primary color is still default (#007bff) -- update in Theme Settings > Styles');
-    }
-
-    if ($secondary && $secondary !== '#6c757d') {
-        health_pass("Secondary color customized: {$secondary}");
-    } else {
-        health_warn('Secondary color is still default (#6c757d)');
-    }
-
-    // Fonts
-    $font_embed = get_field('styles_font_embed', 'option');
-    if ($font_embed) {
-        health_pass('Custom font embed code set');
-    } else {
-        health_warn('No font embed code -- using system defaults');
-    }
 
     // Scripts
     $ga = get_field('scripts_google_analytics', 'option');
@@ -259,6 +236,77 @@ if (function_exists('get_field')) {
     }
 } else {
     health_fail('get_field() not available -- ACF not loaded');
+}
+
+// ─── Brand tokens ────────────────────────────────────────────────────────────
+//
+// These moved out of Theme Settings > Styles and into the :root block in
+// style.css on 2026-09-03, so this reads the stylesheet rather than ACF. Still
+// carrying the kit's shipped default means the site was never taken off the
+// scaffold's palette.
+
+// The reference block must not reach a launched site.
+if (is_dir(get_template_directory() . '/blocks/kitdemo')) {
+    health_fail('blocks/kitdemo/ is still present -- delete it before launch (it is the kit reference block, not a real one)');
+} else {
+    health_pass('Reference block removed');
+}
+
+$style_css = @file_get_contents(get_template_directory() . '/style.css');
+
+if ($style_css === false) {
+    health_fail('Could not read style.css');
+} else {
+    $shipped_defaults = array(
+        '--primary'   => '#007bff',
+        '--secondary' => '#6c757d',
+        '--tertiary'  => '#ffc107',
+        '--font1'     => "'Montserrat', sans-serif",
+        '--font2'     => "'Open Sans', sans-serif",
+    );
+
+    foreach ($shipped_defaults as $token => $default) {
+        if (!preg_match('/' . preg_quote($token, '/') . ':\s*([^;]+);/', $style_css, $m)) {
+            health_fail("{$token} is not declared in style.css's :root block");
+            continue;
+        }
+
+        $value = trim($m[1]);
+
+        if ($value === $default) {
+            health_warn("{$token} is still the kit default ({$default}) -- set it in style.css");
+        } else {
+            health_pass("{$token}: {$value}");
+        }
+    }
+
+    // Fonts are the one thing declared twice -- header.php cannot reach the block
+    // editor's iframe, so editor-fonts.css repeats the families as an @import. If
+    // they drift, the live page is right and the editor previews in a fallback face.
+    $header_php   = @file_get_contents(get_template_directory() . '/header.php');
+    $editor_fonts = @file_get_contents(get_template_directory() . '/assets/css/editor-fonts.css');
+
+    if ($header_php === false || $editor_fonts === false) {
+        health_warn('Could not compare header.php webfonts against assets/css/editor-fonts.css');
+    } else {
+        preg_match_all('/family=([A-Za-z0-9+]+)/', $header_php, $hf);
+        preg_match_all('/family=([A-Za-z0-9+]+)/', $editor_fonts, $ef);
+
+        $in_header = array_unique($hf[1]);
+        $in_editor = array_unique($ef[1]);
+
+        if (!$in_header && !$in_editor) {
+            health_info('No Google Fonts declared in header.php -- self-hosted or system stack');
+        } elseif (array_diff($in_header, $in_editor) || array_diff($in_editor, $in_header)) {
+            health_fail(
+                'Webfont drift: header.php has [' . implode(', ', $in_header) . '] but '
+                . 'editor-fonts.css has [' . implode(', ', $in_editor) . '] -- '
+                . 'the block editor will preview in a fallback face'
+            );
+        } else {
+            health_pass('Webfonts match between header.php and the editor canvas (' . implode(', ', $in_header) . ')');
+        }
+    }
 }
 
 WP_CLI::log('');
