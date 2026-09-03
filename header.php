@@ -8,10 +8,23 @@
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <?php
-// Include theme settings CSS
-include(get_template_directory() . '/theme-settings-css.php');
+// Theme Settings > Scripts.
+//
+// Read directly, not through an include. This file used to depend on
+// theme-settings-css.php -- included three lines above -- leaking $header_scripts,
+// $google_analytics and friends out of load_template()'s function scope. That is
+// the same trap that rendered every archive blank once. The include is gone;
+// brand tokens now live in style.css and Theme Settings holds only the four pages
+// listed in functions/acf.php.
+$header_scripts     = get_field('scripts_header', 'option');
+$footer_scripts     = get_field('scripts_footer', 'option');
+$google_analytics   = get_field('scripts_google_analytics', 'option');
+$google_tag_manager = get_field('scripts_google_tag_manager', 'option');
+$facebook_pixel     = get_field('scripts_facebook_pixel', 'option');
 
-// Get page-specific scripts
+$favicon = get_field('branding_favicon', 'option');
+
+// Page-specific scripts
 $page_head_scripts = get_field('page_head_scripts');
 $page_body_scripts = get_field('page_body_scripts');
 ?>
@@ -67,6 +80,22 @@ $page_body_scripts = get_field('page_body_scripts');
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="profile" href="http://gmpg.org/xfn/11">
   <link rel="pingback" href="<?php bloginfo('pingback_url'); ?>">
+
+  <?php /*
+    Webfonts. Set these to the site's design and keep --font1 / --font2 in
+    style.css matching. This was a Theme Settings field until 2026-09-03; a
+    typeface is a design decision, so it is code now.
+
+    Keep assets/css/editor-fonts.css in step. The block editor canvas is an
+    iframe and cannot be handed a <link>, so it needs the same families as an
+    @import or every block previews in a fallback face.
+  */ ?>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&#038;family=Open+Sans:wght@400;600;700&#038;display=swap">
+
+  <?php /* FontAwesome, if the design uses it. Was styles_fontawesome_kit. */ ?>
+  <?php // echo '<script src="https://kit.fontawesome.com/XXXXXXXXXX.js" crossorigin="anonymous"></script>'; ?>
   <?php if (isset($favicon) && $favicon) : ?>
     <link rel="shortcut icon" href="<?php echo esc_url($favicon['url']); ?>" />
   <?php endif; ?>

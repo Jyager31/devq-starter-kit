@@ -11,8 +11,40 @@ DevQ Kit: 485c387 (2026-08-18)
 /* -----------------------------------------------------------------------------
  * CSS Variables
  * -------------------------------------------------------------------------- */
+/* Set these to the site's design. They are the ONLY place the brand is defined:
+ * the front end reads them here and the block editor canvas gets this same file
+ * through add_editor_style(), so the editor cannot drift from the live page.
+ *
+ * These were an ACF Theme Settings > Styles page until 2026-09-03. They are code
+ * now because a typeface and a palette are design decisions made once against the
+ * approved comp -- not switches to leave live on a client's account, where the
+ * page could restyle every template on the site in one click. */
 :root {
-  /* Note: --spacing-small, --spacing-medium, --spacing-large are set dynamically in theme-settings-css.php */
+  /* Brand */
+  --primary: #007bff;
+  --secondary: #6c757d;
+  --tertiary: #ffc107;
+
+  /* Type */
+  --font1: 'Montserrat', sans-serif;
+  --font2: 'Open Sans', sans-serif;
+  --heading-weight: 500;
+  --heading-line-height: 1;
+  --body-weight: 400;
+  --body-size: 16px;
+  --body-line-height: 1.5;
+  --body-color: #333131;
+
+  /* Buttons */
+  --button-radius: 4px;
+  --button-padding: 10px 20px;
+
+  /* Spacing */
+  --spacing-small: 15px;
+  --spacing-medium: 30px;
+  --spacing-large: 60px;
+  --section-padding-top: 80px;
+  --section-padding-bottom: 80px;
 
   /* Z-index layers */
   --z-index-dropdown: 3;
@@ -24,6 +56,13 @@ DevQ Kit: 485c387 (2026-08-18)
   /* Other */
   --video-aspect-ratio: 56.25%;
   /* 16:9 */
+}
+
+@media (max-width: 767px) {
+  :root {
+    --section-padding-top: 40px;
+    --section-padding-bottom: 40px;
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -41,29 +80,62 @@ body {
   background: #fff;
   position: relative;
   font-family: var(--font2);
-  font-weight: 400;
-  color: #333131;
-  line-height: 1.5;
+  font-weight: var(--body-weight);
+  font-size: var(--body-size);
+  color: var(--body-color);
+  line-height: var(--body-line-height);
 }
 
+/* These name p/ul/li directly rather than letting them inherit from body, and a
+ * rule matching an element directly beats a value inherited from an ancestor. So
+ * on a dark build, overriding `body { color }` alone does NOT undo this -- set
+ * --body-color instead. Every un-styled <p>, <ul> and <li> on the site reads from
+ * it: the 404 and search templates, the_content() output, plain template markup. */
 p, ul, li {
   font-family: var(--font2);
-  font-weight: 400;
-  color: #333131;
-  line-height: 1.5;
+  font-weight: var(--body-weight);
+  font-size: var(--body-size);
+  color: var(--body-color);
+  line-height: var(--body-line-height);
 }
 
 img {
   max-width: 100%;
 }
 
+/* WordPress prints this class on search-form labels and pagination text and
+ * expects the theme to hide it. The kit defined it nowhere and neither does
+ * reflex.css, so those labels rendered as visible body copy the moment you used
+ * get_search_form() or paginate_links(). */
+.screen-reader-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.screen-reader-text:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
 /* -----------------------------------------------------------------------------
  * Typography
  * -------------------------------------------------------------------------- */
-h1, h2, h3, h4, h5 {
+h1, h2, h3, h4, h5, h6 {
   font-family: var(--font1);
-  font-weight: 500;
-  line-height: 1;
+  font-weight: var(--heading-weight);
+  line-height: var(--heading-line-height);
 }
 
 h1 {

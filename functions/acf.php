@@ -71,77 +71,78 @@ function devq_acf_local_json_debug()
 add_action('acf/init', 'devq_acf_op_init');
 function devq_acf_op_init()
 {
-    // Check function exists.
-    if (function_exists('acf_add_options_sub_page')) {
+    if (!function_exists('acf_add_options_sub_page')) {
+        return;
+    }
 
-        // Add parent.
-        $parent = acf_add_options_page(array(
-            'page_title'  => __('Theme General Settings'),
-            'menu_title'  => __('Theme Settings'),
-            'menu_slug'   => 'theme-general-settings',
-            'capability'  => 'edit_posts',
-            'redirect'    => true,
-            'position'    => 3
-        ));
+    // Add parent. edit_posts so the menu itself is visible to a client Editor --
+    // the lock is applied per sub page below, not here.
+    $parent = acf_add_options_page(array(
+        'page_title'  => __('Theme General Settings'),
+        'menu_title'  => __('Theme Settings'),
+        'menu_slug'   => 'theme-general-settings',
+        'capability'  => 'edit_posts',
+        'redirect'    => true,
+        'position'    => 3
+    ));
 
-        // Add sub pages with standardized slugs that match our theme-settings directory structure
-
-        // Branding settings
-        $child = acf_add_options_sub_page(array(
-            'page_title'  => __('Branding'),
-            'menu_title'  => __('Branding'),
-            'menu_slug'   => 'branding',
+    foreach (devq_theme_settings_pages() as $slug => $page) {
+        acf_add_options_sub_page(array(
+            'page_title'  => __($page['title']),
+            'menu_title'  => __($page['title']),
+            'menu_slug'   => $slug,
             'parent_slug' => $parent['menu_slug'],
-        ));
-
-        // Contact settings
-        $child = acf_add_options_sub_page(array(
-            'page_title'  => __('Contact'),
-            'menu_title'  => __('Contact'),
-            'menu_slug'   => 'contact',
-            'parent_slug' => $parent['menu_slug'],
-        ));
-
-        // Social settings
-        $child = acf_add_options_sub_page(array(
-            'page_title'  => __('Social'),
-            'menu_title'  => __('Social'),
-            'menu_slug'   => 'social',
-            'parent_slug' => $parent['menu_slug'],
-        ));
-
-        // Styles settings
-        $child = acf_add_options_sub_page(array(
-            'page_title'  => __('Styles'),
-            'menu_title'  => __('Styles'),
-            'menu_slug'   => 'styles',
-            'parent_slug' => $parent['menu_slug'],
-        ));
-
-        // Scripts settings
-        $child = acf_add_options_sub_page(array(
-            'page_title'  => __('Scripts'),
-            'menu_title'  => __('Scripts'),
-            'menu_slug'   => 'scripts',
-            'parent_slug' => $parent['menu_slug'],
-        ));
-
-        // Layouts settings
-        $child = acf_add_options_sub_page(array(
-            'page_title'  => __('Layouts'),
-            'menu_title'  => __('Layouts'),
-            'menu_slug'   => 'layouts',
-            'parent_slug' => $parent['menu_slug'],
-        ));
-
-        // 404 Page settings
-        $child = acf_add_options_sub_page(array(
-            'page_title'  => __('404 Page'),
-            'menu_title'  => __('404 Page'),
-            'menu_slug'   => '404',
-            'parent_slug' => $parent['menu_slug'],
+            'capability'  => $page['capability'],
         ));
     }
+}
+
+
+/**
+ * The Theme Settings sub pages, and who is allowed to open each one.
+ *
+ * Deliberately short. A setting earns a place here only if it is something that
+ * legitimately CHANGES after launch and is not a design decision: a new phone
+ * number, a new Instagram account, a swapped logo, a marketing tag. Everything
+ * that describes how the site LOOKS is code -- built once against the approved
+ * design, same as header.php and footer.php.
+ *
+ * Removed 2026-09-03, and worth knowing why before adding anything back:
+ *   Styles   26 fields of colour, type, spacing and button geometry. Now the
+ *            :root block in style.css. As an options page it was a switch that
+ *            restyled every template on the site, sitting on a client's account.
+ *   Layouts  picked between template-parts/{archive,single}/style-*.php. Same
+ *            pattern as the header/footer style variants already deleted -- a
+ *            designed thing behind a dropdown. archive.php and single.php are
+ *            now written to spec per site.
+ *   404 Page a 404 is a designed page. 404.php is written to spec.
+ *
+ * A sub page does NOT inherit its parent's capability. Set it on the parent alone
+ * and every child stays wide open -- which is how an account handed out for
+ * content work ends up able to inject JavaScript into every page on the site.
+ *
+ *   edit_posts     content a client maintains
+ *   manage_options anything that can re-plumb the whole site
+ *
+ * A site can move a page either way:
+ *
+ *     add_filter('devq_theme_settings_pages', function ($pages) {
+ *         $pages['scripts']['capability'] = 'edit_posts';
+ *         return $pages;
+ *     });
+ *
+ * @return array
+ */
+function devq_theme_settings_pages()
+{
+    $pages = array(
+        'branding' => array('title' => 'Branding', 'capability' => 'edit_posts'),
+        'contact'  => array('title' => 'Contact',  'capability' => 'edit_posts'),
+        'social'   => array('title' => 'Social',   'capability' => 'edit_posts'),
+        'scripts'  => array('title' => 'Scripts',  'capability' => 'manage_options'),
+    );
+
+    return apply_filters('devq_theme_settings_pages', $pages);
 }
 
 
