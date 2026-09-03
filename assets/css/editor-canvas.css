@@ -36,6 +36,53 @@
 }
 
 /* -----------------------------------------------------------------------------
+ * Full-bleed sections
+ *
+ * A DevQ block is a full-width <section> with its own .container inside it. The
+ * canvas does not know that: with no theme.json, core sizes blocks from
+ * $content_width and caps each one at the wide size, so every block previews as
+ * an 1100px column with white gutters down both sides. Measured on a clean kit:
+ * canvas 1490px, block 1100px. A block with a coloured or image background then
+ * previews as a floating card, which is not what the page looks like, and it is
+ * the client's only view of the page.
+ *
+ * The cap sits on the outer .wp-block wrapper, and only the element INSIDE that
+ * wrapper carries data-type -- hence :has(> ...) rather than a plain attribute
+ * selector. Verified in the canvas DOM, not assumed.
+ *
+ * If a site genuinely wants a boxed block in the editor, give the block an
+ * explicit max-width in its own stylesheet; that still applies inside here.
+ * -------------------------------------------------------------------------- */
+.wp-block:has(> [data-type^="acf/"]) {
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * Sideways scroll
+ *
+ * Released from the content cap, a block mid-edit (a wide grid before its
+ * repeater is filled, a carousel track with no JS to lay it out) can push the
+ * canvas wider than the frame and give the client a horizontal scrollbar over
+ * the page they are editing. clip rather than hidden so nothing here creates a
+ * scroll container that breaks position: sticky further down the page.
+ * -------------------------------------------------------------------------- */
+body {
+  overflow-x: clip;
+}
+
+/* -----------------------------------------------------------------------------
+ * Sticky elements
+ *
+ * A position: sticky element resolves against the canvas scroller rather than
+ * the window, so it can detach and ride over the block being edited. There is no
+ * safe blanket rule -- neutralise the specific class the site uses:
+ *
+ *   .your-sticky-thing { position: static !important; }
+ * -------------------------------------------------------------------------- */
+
+/* -----------------------------------------------------------------------------
  * Empty block placeholder
  *
  * Printed by devq_block_placeholder() when a block has nothing to render. A block

@@ -92,6 +92,7 @@ What the theme does about it:
 | Brand tokens have to reach the iframe | free: they are the `:root` block in `style.css`, already in that list |
 | Webfonts: an iframe cannot be handed a `<link>` | `assets/css/editor-fonts.css`, one `@import`, kept in step with `header.php` |
 | ACF WYSIWYG fields render in the browser default serif | free: wp-admin appends the editor-style list to TinyMCE's `content_css` |
+| Full-bleed blocks preview boxed at the content width, gutters either side | `assets/css/editor-canvas.css` |
 | The canvas runs no JS, so AOS leaves animated blocks at opacity 0 | `assets/css/editor-canvas.css` |
 | Left-placement ACF tabs eat 53px of a 265px inspector | `assets/css/admin-ux.css`, scoped to the sidebar |
 | An empty block renders nothing and is invisible in both places | `devq_block_placeholder()` |
