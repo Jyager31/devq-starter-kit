@@ -10,7 +10,7 @@
  * -------------------------------------------------------------------------- */
 
 /* -----------------------------------------------------------------------------
- * Widen the block inspector
+ * The block inspector
  *
  * WordPress 7.1 removed useShouldIframe() from edit-post.js -- the canvas is now
  * iframed unconditionally, with no prop, filter or setting to opt out
@@ -20,33 +20,42 @@
  * on every block being apiVersion >= 3, so ACF blocks stayed editable in the
  * canvas -- which is why the same site behaves differently across that update.
  *
- * At WordPress's default 280px that panel is unusable for real field groups: a
- * 50/50 pair lands at 133px each, the tab row wraps to two lines and a text
- * input shows "Reference blo".
+ * Editing in the canvas is not recoverable. Forcing ACF's toggle back on renders
+ * the block with zero fields, and renaming the iframe so ACF's check misses it
+ * collapses core's layout, because core queries that same name for canvas
+ * sizing. Both were tested. The panel is what there is, so the panel has to be
+ * big enough to work in.
  *
- * Widening the panel beats forcing every field to full width, because the 50/50
- * pairs keep the grouping they were designed with. The width has to be set on
- * the inner regions too -- the sidebar itself accepts a new width while
- * .block-editor-block-inspector stays pinned at 265px, so the panel just grows
- * dead space on its right. The inner selectors are structural on purpose: the
- * wrapper divs carry generated emotion class names that change between builds.
+ * At WordPress's default 280px it is not: a 50/50 pair lands at 133px each, the
+ * tab row wraps to two lines, and a number field with a unit appended shows one
+ * digit.
+ *
+ * Width comes from --devq-inspector-w so assets/js/editor-inspector.js can drag
+ * it, and so the "Edit fields" button in the block toolbar can throw it wide for
+ * one edit. The value here is the default the panel opens at; the script
+ * restores whatever the user last dragged it to.
  *
  * Only above 1200px, where there is room to take it from the canvas.
- *
- * Measured on this panel: inspector 265 -> 405px, paired fields 133 -> 203px,
- * repeater sub fields 84/167 -> 154/307px, tab rows 2 -> 1, TinyMCE rows 4 -> 3,
- * no horizontal overflow.
  * -------------------------------------------------------------------------- */
+:root {
+  --devq-inspector-w: 480px;
+}
+
 @media (min-width: 1200px) {
   /* !important throughout: WordPress sets these widths from its own editor
      stylesheets, and load order between those and a theme's admin CSS is not
      guaranteed. Without it the panel silently stays at 280px. */
   .interface-interface-skeleton__sidebar {
-    width: 420px !important;
-    flex-basis: 420px !important;
-    max-width: 420px !important;
+    width: var(--devq-inspector-w) !important;
+    flex-basis: var(--devq-inspector-w) !important;
+    max-width: var(--devq-inspector-w) !important;
   }
 
+  /* The width has to be set on the inner regions too -- the sidebar itself
+     accepts a new width while .block-editor-block-inspector stays pinned at
+     265px, so the panel just grows dead space on its right. These selectors are
+     structural on purpose: the wrapper divs carry generated emotion class names
+     that change between builds. */
   .interface-interface-skeleton__sidebar .interface-complementary-area,
   .interface-interface-skeleton__sidebar .block-editor-block-inspector,
   .interface-interface-skeleton__sidebar > div,
@@ -54,6 +63,81 @@
     width: 100% !important;
     max-width: 100% !important;
   }
+}
+
+/* -----------------------------------------------------------------------------
+ * One field per row
+ *
+ * ACF writes its column widths as an inline style -- style="width: 50%" straight
+ * on .acf-field -- so an author rule needs !important to beat it. On the kit
+ * demo block, 19 of 35 fields are half width.
+ *
+ * A 50/50 pair is a fine layout on a full-width options screen and a bad one in
+ * a side panel: the pair splits whatever the panel is, so a number input with a
+ * unit appended ("8" + "ms") clips to a single digit, and a label wraps to three
+ * lines above a field two words wide. One field per row, always, so nothing
+ * depends on how wide the client happens to have dragged the panel.
+ *
+ * Scoped to the sidebar. Theme Settings pages are full-width admin screens where
+ * ACF's own widths are right, and they must keep them.
+ *
+ * `.acf-fields > .acf-field` deliberately does not reach a table-layout
+ * repeater's cells, which are children of a row rather than of a fields wrapper
+ * -- those are a grid and forcing each cell to 100% would break the row.
+ * -------------------------------------------------------------------------- */
+.interface-interface-skeleton__sidebar .acf-fields > .acf-field,
+.block-editor-block-inspector .acf-fields > .acf-field {
+  width: 100% !important;
+}
+
+/* ACF draws the divider between two fields sitting side by side. Once they are
+   stacked, that border is a line down the left edge of every field. */
+.interface-interface-skeleton__sidebar .acf-fields > .acf-field,
+.block-editor-block-inspector .acf-fields > .acf-field {
+  border-left-width: 0 !important;
+}
+
+/* Number, range and similar fields ACF renders with a unit appended: the input
+   and its suffix share the row, and at half width the input lost. */
+.interface-interface-skeleton__sidebar .acf-input-wrap .acf-input-prepend,
+.interface-interface-skeleton__sidebar .acf-input-wrap .acf-input-append,
+.block-editor-block-inspector .acf-input-wrap .acf-input-prepend,
+.block-editor-block-inspector .acf-input-wrap .acf-input-append {
+  white-space: nowrap;
+}
+
+/* -----------------------------------------------------------------------------
+ * Drag handle
+ *
+ * Parked on document.body by assets/js/editor-inspector.js as a fixed element
+ * tracking the sidebar's left edge, rather than as a child of the sidebar, so
+ * React never re-renders it away.
+ * -------------------------------------------------------------------------- */
+.devq-inspector-grip {
+  position: fixed;
+  z-index: 100000;
+  width: 6px;
+  cursor: col-resize;
+  background: transparent;
+  transition: background 120ms ease;
+}
+
+.devq-inspector-grip:hover,
+body.devq-inspector-resizing .devq-inspector-grip {
+  background: var(--wp-admin-theme-color, #3858e9);
+}
+
+body.devq-inspector-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
+/* The canvas is an iframe, and an iframe swallows the mousemove events the drag
+   needs the moment the cursor crosses into it -- which is immediately, since the
+   drag goes leftwards. Without this the panel stops following the mouse a few
+   pixels in. */
+body.devq-inspector-resizing iframe {
+  pointer-events: none !important;
 }
 
 /* -----------------------------------------------------------------------------

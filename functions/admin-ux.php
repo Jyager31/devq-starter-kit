@@ -48,6 +48,17 @@ function devq_admin_ux_assets($hook)
         return;
     }
 
+    // Drag-resize for the inspector, and the "Edit fields" button that opens it
+    // wide from the block toolbar. The fields are only reachable in that panel
+    // on WP 7.1+, so both are part of the editing experience, not decoration.
+    wp_enqueue_script(
+        'devq-editor-inspector',
+        $theme_uri . '/assets/js/editor-inspector.js',
+        array('wp-hooks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-compose', 'wp-data'),
+        filemtime($theme_dir . '/assets/js/editor-inspector.js'),
+        true
+    );
+
     devq_maybe_prime_list_view($theme_uri, $theme_dir);
 }
 add_action('admin_enqueue_scripts', 'devq_admin_ux_assets');

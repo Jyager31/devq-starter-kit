@@ -78,8 +78,14 @@ in either document) **and** core's own layout collapses, because core queries
 
 So on 7.1+:
 
-- **The inspector is the only editing surface.** `admin-ux.css` widens it from 280px to 420px
-  above 1200px, which is what makes real field groups usable there.
+- **The inspector is the only editing surface.** `admin-ux.css` takes it from 280px to 480px
+  above 1200px and stacks every field one per row. Width is `--devq-inspector-w`, so
+  `assets/js/editor-inspector.js` can drag it (double-click the edge snaps to two thirds of the
+  window, capped at 1100px) and remember it per browser.
+- **The gesture is gone, so put it back.** Before 7.1 a client clicked the block and typed into
+  it. The pencil in the block toolbar -- "Edit fields" -- opens the inspector wide in one click,
+  and a second click hands the preview back. Added through `editor.BlockEdit`, not by patching
+  ACF.
 - **The canvas preview must be correct**, because it is all the client sees.
 - **List View is how a block gets selected.** `functions/admin-ux.php` opens it once per user.
 
@@ -95,6 +101,8 @@ What the theme does about it:
 | Full-bleed blocks preview boxed at the content width, gutters either side | `assets/css/editor-canvas.css` |
 | The canvas runs no JS, so AOS leaves animated blocks at opacity 0 | `assets/css/editor-canvas.css` |
 | Left-placement ACF tabs eat 53px of a 265px inspector | `assets/css/admin-ux.css`, scoped to the sidebar |
+| ACF's 50/25% field widths clip inputs in a side panel (a number field with a unit shows one digit) | `assets/css/admin-ux.css` -- one field per row, `!important` over ACF's inline `style="width:50%"` |
+| A repeater-heavy block needs more panel than a heading-and-button one | `assets/js/editor-inspector.js` -- drag, snap, and the toolbar button |
 | An empty block renders nothing and is invisible in both places | `devq_block_placeholder()` |
 
 **The token contract.** The `:root` block at the top of `style.css` is the only place tokens

@@ -62,7 +62,8 @@ acfjson/              4 settings field groups (branding, contact, social,
                       scripts) + your block groups
 assets/               css: aos, reflex, slick, beefup, magnific,
                            editor-canvas (iframe), admin-ux (wp-admin)
-                      js:  mobile-menu, custom, editor-onboarding, vendor libs
+                      js:  mobile-menu, custom, editor-inspector, editor-onboarding,
+                           vendor libs
 blocks/               EMPTY. Your blocks go here.
 functions/            acf, admin-ux, animations, blocks, editor-canvas,
                       emailnotifications, navwalker, page-builder, posttype,
@@ -128,7 +129,11 @@ The kit ships that as a working experience rather than leaving each build to red
   iframe cannot be handed a `<link>`. `site-health.php` fails if the two drift.
 - `assets/css/editor-canvas.css` undoes front-end behaviour with no JS behind it in the
   editor, so an AOS block does not preview as an empty band.
-- `assets/css/admin-ux.css` makes the ~265px inspector usable.
+- `assets/css/admin-ux.css` makes the inspector usable: 480px above 1200px, and one field per
+  row (ACF's 50/25% widths clip an input badly in a side panel).
+- `assets/js/editor-inspector.js` lets the client drag that panel wider, remembers it, and puts
+  an **Edit fields** pencil in the block toolbar that opens it wide in one click -- the closest
+  thing left to clicking a block and typing into it.
 - `devq_block_placeholder()` gives an empty block a labelled dashed box in the editor. Without
   it a block with an empty repeater renders nothing anywhere and nobody can see it exists.
 - List View opens by default the first time a user edits, once.
