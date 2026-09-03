@@ -147,7 +147,13 @@ The kit ships that as a working experience rather than leaving each build to red
 - A **How to edit your site** panel sits at the top of the dashboard. Customise per site with
   the `devq_help_steps` and `devq_help_footnote` filters.
 
-Full mechanics and the traps in `CLAUDE.md`.
+Because all of that leans on class names and behaviours core and ACF do not promise to keep,
+`functions/editor-contract.php` writes each assumption down with a check for it: `site-health.php`
+greps what core and ACF shipped (works over SSH, no browser), and `assets/js/editor-contract.js`
+measures in a live editor whether our CSS still wins -- a class can survive a release while core
+starts beating it, which looks identical from disk. Both stay silent until something moves.
+
+Full mechanics, the traps, and the post-update checklist in `CLAUDE.md`.
 
 ## Menus
 

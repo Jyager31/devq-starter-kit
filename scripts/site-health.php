@@ -318,6 +318,42 @@ if ($style_css === false) {
 
 WP_CLI::log('');
 
+// ─── Editor contract ─────────────────────────────────────────────────────────
+//
+// The editing experience leans on a handful of things core and ACF do not
+// promise to keep. Each one degrades quietly -- the inspector snaps back to
+// 280px, blocks preview unstyled -- so the site keeps working and nobody
+// reports it. functions/editor-contract.php holds the assumptions; this prints
+// them. Forced rather than cached: a scheduled run is exactly when we want the
+// real answer, not last week's.
+
+WP_CLI::log(WP_CLI::colorize('%B--- Editor Contract ---%n'));
+
+if (!function_exists('devq_editor_contract_results')) {
+    health_warn('functions/editor-contract.php is not loaded -- the editor assumptions are unchecked');
+} else {
+    $contract    = devq_editor_contract_results(true);
+    $definitions = devq_editor_contract_definitions();
+
+    foreach ($contract['untested'] as $what => $versions) {
+        health_warn("{$what} {$versions[1]} has not been through the editor checklist (last checked at {$versions[0]}) -- see CLAUDE.md");
+    }
+
+    if (empty($contract['untested'])) {
+        health_pass('WordPress and ACF are both at versions the editor UX was checked against');
+    }
+
+    foreach ($definitions as $key => $check) {
+        if (in_array($key, $contract['failed'], true)) {
+            health_fail($check['label'] . ' -- NO LONGER TRUE. ' . $check['impact']);
+        } else {
+            health_pass($check['label']);
+        }
+    }
+}
+
+WP_CLI::log('');
+
 // ─── 5. Pages & Content ──────────────────────────────────────────────────────
 
 WP_CLI::log(WP_CLI::colorize('%W--- Pages & Content ---%n'));

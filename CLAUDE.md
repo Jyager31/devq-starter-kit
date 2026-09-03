@@ -143,6 +143,68 @@ A sub page does **not** inherit its parent's capability. Set it on the parent al
 child stays open — which is how an account handed out for content work ends up able to inject
 JavaScript into every page on the site.
 
+### After a WordPress or ACF update
+
+Everything above is built on things core and ACF do not promise to keep: two class names, a
+substitution rule inside `block-editor.js`, ACF's DOM check for the canvas iframe, and ACF
+writing field widths as an inline style. WP Engine applies minor updates automatically, so
+assume these will move eventually.
+
+The problem is never that they change -- it is that they change **quietly**. Every one of these
+failures looks like nothing. The inspector goes back to 280px. Blocks preview in Times New Roman.
+Fields sit two-up and clip. The site still works, the client decides the editor is just a bit
+awkward, and nobody tells us until the next build.
+
+So each assumption is written down in `functions/editor-contract.php` with something that proves
+it, and there are two checks, because they catch different things.
+
+**1. What core and ACF shipped** -- `scripts/site-health.php`, or over SSH across the fleet:
+
+```
+wp eval-file wp-content/themes/<theme>/scripts/site-health.php
+```
+
+Greps their files for each class name and behaviour. Catches a rename or a removal, needs no
+browser, and prints the consequence rather than just a red line. It also warns when WordPress or
+ACF is at a version nobody has actually looked at yet.
+
+**2. Whether our CSS still wins** -- `assets/js/editor-contract.js`, loaded for `manage_options`
+only. A grep cannot tell you that core kept a class but added a rule with more specificity, which
+looks identical from disk and leaves the panel silently back at its default. This measures the
+finished result in a live editor: the panel is the width we asked for, the canvas is not capping
+full-bleed blocks, a field ACF marked 50% is full width while the panel is narrow, and the store
+method the add-section buttons need still exists. Silent unless something moved. Force it with
+`devqEditorContract()` in the console.
+
+Then look, because neither check can tell you it looks right. Open a page with blocks on it and
+confirm in about a minute:
+
+| | |
+|---|---|
+| Blocks preview styled, in the brand's typeface | not serif -- `editor-canvas.php` and the `:root` tokens |
+| Full-bleed sections span the canvas | not boxed with gutters |
+| The inspector is wide, one field per row | drag the edge; it should follow and be remembered |
+| The pencil opens the fields wide, and closes them again | the button shows as pressed while wide |
+| The two arrows add a section above and below | and the picked block lands there, not at the end |
+
+When it all holds, bump `DEVQ_EDITOR_TESTED_WP` / `DEVQ_EDITOR_TESTED_ACF` in
+`functions/editor-contract.php` and commit -- that is what stops the warning, and it should mean
+"someone looked", not "a grep went green". A site pinned to an older stack can say so with the
+`devq_editor_tested_versions` filter, and a build that leans on something else fragile should add
+it through `devq_editor_contract_definitions` rather than finding out from a client.
+
+**What keeps the blast radius small**, and is worth preserving when changing any of this:
+
+- Everything is built on documented extension points -- `editor.BlockEdit`, `add_editor_style()`,
+  `admin_enqueue_scripts`, ACF filters. Nothing patches core or ACF, and nothing overwrites their
+  files, so an update can never conflict; the worst case is that a hook stops firing.
+- Every JS entry point feature-detects and returns early. If `wp.blockEditor` or `wp.compose` is
+  not there, the buttons do not render and the editor is otherwise untouched.
+- Where an API has moved between releases, both spellings are tried in turn -- see
+  `openInspector()` and `openInserterAt()`, which walk `core/edit-post` and `core/editor`.
+- No failure here can reach the front end. Every one of these files is admin-only or
+  editor-only, so the worst outcome is an editor that is less pleasant than it was.
+
 ---
 
 ## Versioning

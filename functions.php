@@ -72,6 +72,7 @@ require get_template_directory() . '/functions/animations.php';
 // functions/editor-canvas.php before changing either.
 require get_template_directory() . '/functions/editor-canvas.php';
 require get_template_directory() . '/functions/admin-ux.php';
+require get_template_directory() . '/functions/editor-contract.php';
 
 
 function is_blog()

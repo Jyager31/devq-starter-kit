@@ -70,6 +70,18 @@ function devq_admin_ux_assets($hook)
         true
     );
 
+    // Does any of the above still work? Admins only -- a client can do nothing
+    // with the answer. Silent unless something has moved.
+    if (current_user_can('manage_options')) {
+        wp_enqueue_script(
+            'devq-editor-contract',
+            $theme_uri . '/assets/js/editor-contract.js',
+            array('wp-data'),
+            filemtime($theme_dir . '/assets/js/editor-contract.js'),
+            true
+        );
+    }
+
     devq_maybe_prime_list_view($theme_uri, $theme_dir);
 }
 add_action('admin_enqueue_scripts', 'devq_admin_ux_assets');
