@@ -165,8 +165,16 @@ body.devq-inspector-resizing iframe {
 /* -----------------------------------------------------------------------------
  * ACF tab fields in the block inspector
  *
- * New DevQ blocks set tabs to "placement": "top" and never hit this. Legacy
- * blocks use "left", and ACF renders that as an absolutely positioned rail:
+ * admin-ux.php is the primary mechanism now: it filters acf/prepare_field for
+ * tab fields and forces "placement": "top" while ACF is rendering a block's
+ * inspector form, so ACF lays the tabs out itself and there is no absolutely
+ * positioned rail and no reserved gutter to fight. Everything below is the
+ * fallback for any path where that filter does not fire -- an ACF release that
+ * renders a block form some other way, or a tab reached through markup the
+ * bracket in admin-ux.php does not wrap. It costs nothing when the filter works,
+ * because then no `.acf-tab-wrap.-left` exists in the panel to match.
+ *
+ * What it is falling back FROM: ACF renders left-placed tabs as
  *
  *     .acf-tab-wrap.-left .acf-tab-group {
  *         position: absolute; left: 0; width: 20%; padding: 0 !important;
@@ -177,28 +185,46 @@ body.devq-inspector-resizing iframe {
  * ACF pins every block to preview and this panel is the ONLY way a client can
  * reach the fields -- so it being usable is not cosmetic.
  *
- * Lay the rail out as horizontal pills instead. Scoped to the sidebar: left
- * tabs elsewhere in wp-admin must keep working.
+ * Both placements get the same compact sizing, because ACF's own top-tab
+ * styling is built for a full-width metabox: 14px type, a row that assumes it
+ * never wraps, and a -1px overlap on the active tab that only reads correctly
+ * on the last row. Three tabs at that size do not fit a 480px panel.
+ *
+ * Below that the two end up looking slightly different -- top tabs keep ACF's
+ * joined-to-the-panel chrome, left tabs become separated pills -- because ACF
+ * styles the two placements from different starting points and only the parts
+ * that misbehave in a narrow panel are overridden. Both read as a tab row,
+ * which is the point; forcing them pixel-identical would mean restyling ACF's
+ * top tabs for no reason.
+ *
+ * Scoped to the sidebar: tabs elsewhere in wp-admin must keep working. Verified
+ * on thedevq -- this file is enqueued on ACF admin screens too (for the field
+ * instruction contrast below), and a Theme Settings options page keeps its
+ * absolutely positioned 280px left rail untouched.
  * -------------------------------------------------------------------------- */
-.block-editor-block-inspector .acf-tab-wrap.-left .acf-tab-group,
-.interface-interface-skeleton__sidebar .acf-tab-wrap.-left .acf-tab-group {
+.block-editor-block-inspector .acf-tab-wrap .acf-tab-group,
+.interface-interface-skeleton__sidebar .acf-tab-wrap .acf-tab-group {
   position: static;
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
   width: auto;
+  padding: 0;
+  border: 0 none;
+  background: none;
   margin: 0 0 12px;
 }
 
-.block-editor-block-inspector .acf-tab-wrap.-left .acf-tab-group li,
-.interface-interface-skeleton__sidebar .acf-tab-wrap.-left .acf-tab-group li {
+.block-editor-block-inspector .acf-tab-wrap .acf-tab-group li,
+.interface-interface-skeleton__sidebar .acf-tab-wrap .acf-tab-group li {
+  float: none;
   margin: 0;
 }
 
-/* ACF puts the borders on the anchor, not the li, and only on top and bottom --
-   right for a vertical strip, wrong for a pill. */
-.block-editor-block-inspector .acf-tab-wrap.-left .acf-tab-group li a,
-.interface-interface-skeleton__sidebar .acf-tab-wrap.-left .acf-tab-group li a {
+/* ACF puts the borders on the anchor, not the li, and for a left rail only on
+   top and bottom -- right for a vertical strip, wrong for a pill. */
+.block-editor-block-inspector .acf-tab-wrap .acf-tab-group li a,
+.interface-interface-skeleton__sidebar .acf-tab-wrap .acf-tab-group li a {
   border-width: 1px;
   border-radius: 3px;
   padding: 6px 10px;
@@ -206,14 +232,17 @@ body.devq-inspector-resizing iframe {
   line-height: 16px;
 }
 
-/* The active tab is nudged a pixel right to sit over a vertical rail's edge. */
-.block-editor-block-inspector .acf-tab-wrap.-left .acf-tab-group li.active a,
-.interface-interface-skeleton__sidebar .acf-tab-wrap.-left .acf-tab-group li.active a {
+/* Nudges that exist to sit an active tab over a rail edge or a row's bottom
+   border. Neither edge is there once the tabs are pills. */
+.block-editor-block-inspector .acf-tab-wrap .acf-tab-group li.active a,
+.interface-interface-skeleton__sidebar .acf-tab-wrap .acf-tab-group li.active a {
   margin-right: 0;
+  margin-bottom: 0;
+  padding-bottom: 6px;
 }
 
-/* A 10px divider bar drawn above the rail, which has no meaning once the tabs
-   are horizontal. */
+/* A 10px divider bar drawn above a left rail, which has no meaning once the
+   tabs are horizontal. */
 .block-editor-block-inspector .acf-field + .acf-tab-wrap.-left:before,
 .interface-interface-skeleton__sidebar .acf-field + .acf-tab-wrap.-left:before {
   display: none;

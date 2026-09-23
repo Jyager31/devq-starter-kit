@@ -140,6 +140,18 @@ function devq_editor_contract_definitions()
             'needle' => 'editor-canvas',
             'impact' => 'If ACF drops this check, fields render in the canvas again and the inspector stops being the only editing surface. Good news, but the docs and the "Edit fields" button would both be describing the old world.',
         ),
+        'acf_tab_placement_attribute' => array(
+            'label'  => 'ACF still renders a tab placement setting as data-placement',
+            'path'   => $acf ? $acf . '/includes/fields/class-acf-field-tab.php' : '',
+            'needle' => 'data-placement',
+            'impact' => 'functions/admin-ux.php forces block-inspector tabs to top placement by setting the field placement, and this attribute is the only thing ACF turns that setting into behaviour with. If it goes, tabs fall back to the CSS pill treatment in admin-ux.css -- which still works, but is the fragile mechanism this replaced.',
+        ),
+        'acf_block_form_post_id' => array(
+            'label'  => 'ACF still renders a block form against a block_ prefixed id',
+            'path'   => $acf ? $acf . '/pro/blocks.php' : '',
+            'needle' => 'acf_ensure_block_id_prefix',
+            'impact' => 'That prefix is how functions/admin-ux.php tells a block inspector form apart from a post metabox or an options page, which is what keeps the top-placement filter off every other ACF screen. If it goes the filter stops firing -- tabs revert to the CSS fallback -- rather than firing too widely, but the scoping needs rewriting.',
+        ),
         'acf_inline_field_width' => array(
             'label'  => 'ACF still writes field widths as an inline style',
             'path'   => $acf ? $acf . '/includes/acf-field-functions.php' : '',

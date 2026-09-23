@@ -112,7 +112,7 @@ What the theme does about it:
 | ACF WYSIWYG fields render in the browser default serif | free: wp-admin appends the editor-style list to TinyMCE's `content_css` |
 | Full-bleed blocks preview boxed at the content width, gutters either side | `assets/css/editor-canvas.css` |
 | The canvas runs no JS, so AOS leaves animated blocks at opacity 0 | `assets/css/editor-canvas.css` |
-| Left-placement ACF tabs eat 53px of a 265px inspector | `assets/css/admin-ux.css`, scoped to the sidebar |
+| Left-placement ACF tabs eat 53px of a 265px inspector | `functions/admin-ux.php` forces `placement: top` while ACF renders a block form (keyed on the `block_` id, render-time only, never saved back); `assets/css/admin-ux.css` is the fallback, scoped to the sidebar |
 | ACF's 50/25% field widths clip inputs in a narrow panel (a number field with a unit shows one digit) | `assets/css/admin-ux.css` -- one field per row under 560px, `!important` over ACF's inline `style="width:50%"` |
 | A repeater-heavy block needs more panel than a heading-and-button one | `assets/js/editor-inspector.js` -- drag, snap, and the toolbar button |
 | The gap to drop a new section into is a few pixels of block spacing, in a preview you cannot type into | `assets/js/editor-insert.js` -- "Add section above / below" on the toolbar |

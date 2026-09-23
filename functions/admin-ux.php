@@ -210,3 +210,138 @@ function devq_help_dashboard_widget_render()
 
     echo '</div>';
 }
+
+
+
+/* -----------------------------------------------------------------------------
+ * ACF tab fields in the block inspector
+ *
+ * A legacy block's tabs are almost always saved as "placement": "left", which
+ * ACF renders as a rail pinned with `position: absolute; left: 0; width: 20%`,
+ * with the fields beside it. In a ~265-480px inspector that is a fifth of the
+ * panel spent on a strip of stacked buttons, and the fields next to it clip.
+ * Since WordPress iframes the canvas, ACF pins every block to preview and this
+ * panel is the only way a client reaches the fields at all, so it being usable
+ * is not cosmetic.
+ *
+ * assets/css/admin-ux.css can lay that rail out as horizontal pills, and still does
+ * as a fallback -- but it is fighting ACF's own absolute positioning with
+ * overrides, and which class carries the reserved gutter has already moved once
+ * between ACF versions. Setting the placement properly is the durable fix: ACF
+ * prints it as `data-placement` on the tab anchor and its JS builds
+ * `.acf-tab-wrap.-top` from that, so a tab told it is top-placed is laid out by
+ * ACF's own top-tab CSS with no rail and no gutter to reclaim.
+ *
+ * The scoping is the whole problem. Left tabs elsewhere in wp-admin have to keep
+ * working -- a post edit screen's own field groups, a Theme Settings options
+ * page, the field group editor -- and get_current_screen() cannot tell us,
+ * because a block's fields are rendered over AJAX and REST where the screen
+ * object is absent or belongs to something else. Worse, ACF's own
+ * `acf_did_render_block_form` flag is set once and never cleared, and on a post
+ * edit screen the block form preloads BEFORE the post's own ACF metaboxes
+ * render in the same request -- so keying off it would silently reflow every
+ * metabox on the page.
+ *
+ * What is reliable is the id the form is rendered against. acf_render_block_form()
+ * and the fetch-block AJAX endpoint both call acf_render_fields() with the
+ * block's own id, which ACF guarantees carries a `block_` prefix
+ * (acf_ensure_block_id_prefix()); nothing else in ACF renders fields against an
+ * id of that shape. acf/pre_render_fields and acf/render_fields bracket exactly
+ * that call, so the flag is on for the block form and off the moment it ends --
+ * including for tabs nested inside a group or repeater, which render inside the
+ * bracket.
+ *
+ * acf/prepare_field is render-time only. It is not consulted when ACF loads a
+ * field for the field group editor or when it saves one, so this can never write
+ * `top` back into a block's field group JSON.
+ * -------------------------------------------------------------------------- */
+
+/**
+ * One entry per open acf_render_fields() call, each saying whether that call is
+ * rendering a block's inspector form.
+ *
+ * A stack rather than a bool because acf/render_fields fires for every
+ * acf_render_fields() call, not just ours, and a nested one must not clear a
+ * flag it did not set.
+ *
+ * @param string $op    'push', 'pop' or 'read'.
+ * @param bool   $value Only read by 'push'.
+ * @return bool True while any open call is a block form.
+ */
+function devq_block_form_stack($op = 'read', $value = false)
+{
+    static $stack = array();
+
+    if ($op === 'push') {
+        $stack[] = (bool) $value;
+    } elseif ($op === 'pop') {
+        array_pop($stack);
+    }
+
+    return in_array(true, $stack, true);
+}
+
+
+/**
+ * Is this acf_render_fields() call rendering a block's inspector form?
+ *
+ * @param mixed $post_id The id ACF is rendering the fields against.
+ * @return bool
+ */
+function devq_is_block_form($post_id)
+{
+    if (is_string($post_id) && strpos($post_id, 'block_') === 0) {
+        return true;
+    }
+
+    // Belt: the endpoint the inspector calls for a block's form renders nothing
+    // else, whatever id it was handed. ACF's own repeater table keys off this
+    // same test.
+    return doing_action('wp_ajax_acf/ajax/fetch-block');
+}
+
+
+/**
+ * Open the bracket.
+ *
+ * @param array $fields
+ * @param mixed $post_id
+ * @return array Unmodified.
+ */
+function devq_open_field_render($fields, $post_id)
+{
+    devq_block_form_stack('push', devq_is_block_form($post_id));
+
+    return $fields;
+}
+add_filter('acf/pre_render_fields', 'devq_open_field_render', 10, 2);
+
+
+/**
+ * Close it.
+ */
+function devq_close_field_render()
+{
+    devq_block_form_stack('pop');
+}
+add_action('acf/render_fields', 'devq_close_field_render', 10, 0);
+
+
+/**
+ * Force tabs to the top, inside the block inspector only.
+ *
+ * @param array|false $field ACF passes false when an earlier filter cancelled
+ *                           the render.
+ * @return array|false
+ */
+function devq_tab_placement_top($field)
+{
+    if (!is_array($field) || !devq_block_form_stack()) {
+        return $field;
+    }
+
+    $field['placement'] = 'top';
+
+    return $field;
+}
+add_filter('acf/prepare_field/type=tab', 'devq_tab_placement_top');
