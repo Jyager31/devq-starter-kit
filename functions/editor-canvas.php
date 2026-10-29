@@ -86,3 +86,29 @@ function devq_editor_block_stylesheets()
 
     return $found;
 }
+
+
+/**
+ * Stop links and forms in block previews from navigating the canvas iframe,
+ * which crashes the whole editor. See assets/js/editor-canvas-links.js.
+ *
+ * enqueue_block_assets on the admin side is the hook that reaches inside the
+ * iframe; it also fires on the front end, hence the is_admin() check.
+ */
+function devq_editor_canvas_links()
+{
+    if (!is_admin()) {
+        return;
+    }
+
+    $rel = '/assets/js/editor-canvas-links.js';
+
+    wp_enqueue_script(
+        'devq-editor-canvas-links',
+        get_template_directory_uri() . $rel,
+        array(),
+        filemtime(get_template_directory() . $rel),
+        false
+    );
+}
+add_action('enqueue_block_assets', 'devq_editor_canvas_links');

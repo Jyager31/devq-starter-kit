@@ -42,7 +42,7 @@
  * because a check went green, but because someone opened the editor and looked.
  */
 define('DEVQ_EDITOR_TESTED_WP', '7.1');
-define('DEVQ_EDITOR_TESTED_ACF', '6.7.0.2');
+define('DEVQ_EDITOR_TESTED_ACF', '6.8.10');
 
 
 /**

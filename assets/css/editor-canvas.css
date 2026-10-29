@@ -24,6 +24,24 @@
   visibility: visible !important;
 }
 
+/*
+ * Hand-rolled reveals do the same thing without AOS: a block that sits at
+ * opacity 0 until its own script adds `.in` renders as white space here (Upside's
+ * About page was 4,000px of it, 2026-10-12). Match the word rather than chase each
+ * build's class. Opacity and transform only: a `.reveal` modal hides itself with
+ * display, which this leaves alone. WOW.js parks elements with visibility instead.
+ */
+[class*="reveal"] {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+.wow {
+  visibility: visible !important;
+  animation: none !important;
+}
+
 /* -----------------------------------------------------------------------------
  * Parallax backgrounds
  *

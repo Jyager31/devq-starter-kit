@@ -49,6 +49,25 @@ add_filter('devq_blocks', function ($blocks) {
 While it is empty, `devq_allowed_block_types()` falls through to the full core block list rather
 than locking the page editor.
 
+## Every block ships a preview image
+
+Hovering a block in the inserter shows a card. Left alone, ACF draws that card by rendering the
+block with every field empty, which shows the client nothing. `devq_render_block()` in
+`functions/blocks.php` swaps in `blocks/<name>/preview.webp` (or `.png`) for that card only; the
+canvas and the front end still render `code.php`.
+
+**A block is not done until its preview exists.** Shoot it from the toolkit once the block is
+styled and on a real page:
+
+```bash
+python "C:/Users/josh/OneDrive/Desktop/Claude Code Toolkit/Scripts/block-preview/shoot.py"     --url http://<site>.local/<page>/ --block <name> --theme "<path to this theme>"
+```
+
+1920 wide, every image loaded, AOS and reveals neutralised, header hidden, cropped to the block,
+scaled to 960, webp. The block is found by `.<name>-block`; pass `--selector` if its wrapper
+class differs. **Re-shoot whenever the markup or styling changes** -- a stale preview is worse
+than none. A block without one still works; its hover card is just empty.
+
 ## The client's editing experience
 
 Read this before changing `functions/editor-canvas.php`, `functions/admin-ux.php` or the
@@ -117,6 +136,10 @@ What the theme does about it:
 | A repeater-heavy block needs more panel than a heading-and-button one | `assets/js/editor-inspector.js` -- drag, snap, and the toolbar button |
 | The gap to drop a new section into is a few pixels of block spacing, in a preview you cannot type into | `assets/js/editor-insert.js` -- "Add section above / below" on the toolbar |
 | An empty block renders nothing and is invisible in both places | `devq_block_placeholder()` |
+| The inserter's hover card renders the block with empty fields, so it shows nothing | `devq_render_block()` -- `blocks/<name>/preview.webp` |
+| Clicking a linked image or button to select its block navigates the canvas iframe, and the whole editor dies with "unexpected error" | `assets/js/editor-canvas-links.js` -- cancels link clicks and form submits inside the canvas |
+| A block's own reveal script (`.reveal`, `.wow`) never runs in the canvas, so the block is white space | `assets/css/editor-canvas.css` |
+| A modal or tab panel closed only by a bare `hidden` attribute paints open in the canvas | **In the block:** write `hidden="hidden"`. ACF parses previews into React, which drops a bare `hidden` |
 
 **The token contract.** The `:root` block at the top of `style.css` is the only place tokens
 are declared, and `style.css` is in the editor-style list. Core's `ROOT_SELECTOR_TOKENS`
@@ -574,6 +597,8 @@ After creating a block:
 6. No console JS errors
 7. No PHP errors
 8. All output properly escaped
+9. `blocks/<name>/preview.webp` shot (see "Every block ships a preview image") and the inserter hover card shows it
+10. Nothing in the block is closed with a bare `hidden` -- use `hidden="hidden"`
 
 ## Block Category
 

@@ -93,7 +93,7 @@ function register_acf_block_types()
         $args = array(
             'name'              => $filteredname,
             'title'             => __($name, 'devq'),
-            'render_template'   => 'blocks/' . $filteredname . '/code.php',
+            'render_callback'   => 'devq_render_block',
             'category'          => 'devq',
             'icon'              => devq_block_icon($filteredname, $icon),
             'mode'              => 'edit',
@@ -122,6 +122,48 @@ function register_acf_block_types()
         }
 
         acf_register_block_type($args);
+    }
+}
+
+
+/**
+ * Render a block: its preview screenshot in the inserter, its code.php everywhere else.
+ *
+ * Hovering a block in the inserter shows a card that renders the block with the
+ * `example` data registered above (__is_preview => true). Without this it draws
+ * the block with every field empty, which shows an editor nothing. Drop
+ * blocks/<name>/preview.webp (or .png) in and the card shows the block as it
+ * really looks: shot on the site's real page at 1920, cropped to the block alone,
+ * scaled to 960. The toolkit's Scripts/block-preview/shoot.py does all of that.
+ *
+ * A block is not done until its preview exists, and the preview is re-shot
+ * whenever the block's markup or styling changes -- a stale one is worse than
+ * none. A block without one falls back to rendering code.php, so nothing breaks.
+ *
+ * code.php is included here, so it sees the same $block, $content, $is_preview
+ * and $post_id it would under render_template. Proved on Arrow's Holliday Farms
+ * build (2026-10), where this rule came from.
+ */
+function devq_render_block($block, $content = '', $is_preview = false, $post_id = 0)
+{
+    $filteredname = preg_replace('/^acf\//', '', $block['name']);
+    $dir          = get_template_directory() . '/blocks/' . $filteredname;
+
+    if (!empty($block['data']['__is_preview'])) {
+        foreach (array('preview.webp', 'preview.png') as $file) {
+            if (file_exists($dir . '/' . $file)) {
+                printf(
+                    '<img src="%s" alt="%s" style="display:block;width:100%%;height:auto;">',
+                    esc_url(get_template_directory_uri() . '/blocks/' . $filteredname . '/' . $file . '?ver=' . filemtime($dir . '/' . $file)),
+                    esc_attr($block['title'] ?? $filteredname)
+                );
+                return;
+            }
+        }
+    }
+
+    if (file_exists($dir . '/code.php')) {
+        include $dir . '/code.php';
     }
 }
 
