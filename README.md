@@ -151,7 +151,8 @@ Because all of that leans on class names and behaviours core and ACF do not prom
 `functions/editor-contract.php` writes each assumption down with a check for it: `site-health.php`
 greps what core and ACF shipped (works over SSH, no browser), and `assets/js/editor-contract.js`
 measures in a live editor whether our CSS still wins -- a class can survive a release while core
-starts beating it, which looks identical from disk. Both stay silent until something moves.
+starts beating it, which looks identical from disk. Both stay silent until something moves, and
+neither puts a notice in wp-admin -- you run them after an update.
 
 Full mechanics, the traps, and the post-update checklist in `CLAUDE.md`.
 

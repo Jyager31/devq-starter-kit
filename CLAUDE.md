@@ -211,8 +211,13 @@ confirm in about a minute:
 | The two arrows add a section above and below | and the picked block lands there, not at the end |
 
 When it all holds, bump `DEVQ_EDITOR_TESTED_WP` / `DEVQ_EDITOR_TESTED_ACF` in
-`functions/editor-contract.php` and commit -- that is what stops the warning, and it should mean
-"someone looked", not "a grep went green". A site pinned to an older stack can say so with the
+`functions/editor-contract.php` and commit -- that is what stops `site-health.php` reporting
+version drift, and it should mean "someone looked", not "a grep went green".
+
+There is no wp-admin notice for any of this, on purpose. The version check is an exact match, so
+every WordPress patch (7.1 vs 7.1.4) and every ACF release set one off on every site even with
+all the file checks passing -- noise on the client's dashboard that taught everyone to ignore it.
+Run the two checks above after an update instead. A site pinned to an older stack can say so with the
 `devq_editor_tested_versions` filter, and a build that leans on something else fragile should add
 it through `devq_editor_contract_definitions` rather than finding out from a client.
 

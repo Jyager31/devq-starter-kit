@@ -29,7 +29,10 @@
  * What this deliberately does NOT do is try to keep working when an assumption
  * breaks. Every one of these degrades into "the editor is less pleasant", never
  * into a broken page: the CSS stops matching, or a JS guard returns early. The
- * job here is to say so out loud.
+ * job here is to say so when asked: scripts/site-health.php over SSH, and
+ * editor-contract.js in a live editor. There is deliberately no wp-admin
+ * notice -- the version check is exact, so every core patch and ACF release
+ * would raise one even with every file check passing.
  *
  * See CLAUDE.md, "After a WordPress or ACF update", for what to do when one of
  * these fails.
@@ -175,8 +178,8 @@ function devq_editor_contract_definitions()
 /**
  * The versions the editor UX was last checked against by hand.
  *
- * Filterable so a site pinned to an older stack can say so, rather than warning
- * about drift on every admin page load for a version it will never run.
+ * Filterable so a site pinned to an older stack can say so, rather than reporting
+ * drift for a version it will never run.
  *
  * @return array
  */
@@ -263,71 +266,8 @@ function devq_editor_contract_results($force = false)
 
 
 /**
- * Tell an administrator, on the screen where it matters, when an assumption has
- * moved under us.
- *
- * Only for users who could act on it. A client seeing "core changed a class
- * name" learns nothing and worries anyway.
- */
-function devq_editor_contract_notice()
-{
-    if (!current_user_can('manage_options')) {
-        return;
-    }
-
-    $screen = function_exists('get_current_screen') ? get_current_screen() : null;
-
-    if (!$screen || !in_array($screen->base, array('post', 'dashboard'), true)) {
-        return;
-    }
-
-    $results = devq_editor_contract_results();
-
-    if (empty($results['failed']) && empty($results['untested'])) {
-        return;
-    }
-
-    $definitions = devq_editor_contract_definitions();
-
-    echo '<div class="notice notice-warning"><p><strong>' .
-        esc_html__('The block editor customisations in this theme need re-checking.', 'devq') .
-        '</strong></p>';
-
-    if (!empty($results['untested'])) {
-        foreach ($results['untested'] as $what => $versions) {
-            printf(
-                '<p>%s</p>',
-                sprintf(
-                    /* translators: 1: WordPress or ACF, 2: tested version, 3: running version. */
-                    esc_html__('%1$s was tested at %2$s and is running %3$s.', 'devq'),
-                    esc_html($what),
-                    esc_html($versions[0]),
-                    esc_html($versions[1])
-                )
-            );
-        }
-    }
-
-    foreach ($results['failed'] as $key) {
-        if (!isset($definitions[$key])) {
-            continue;
-        }
-
-        printf(
-            '<p><strong>%s</strong><br>%s</p>',
-            esc_html__('No longer true: ', 'devq') . esc_html($definitions[$key]['label']),
-            esc_html($definitions[$key]['impact'])
-        );
-    }
-
-    echo '<p>' . esc_html__('See "After a WordPress or ACF update" in the theme\'s CLAUDE.md.', 'devq') . '</p></div>';
-}
-add_action('admin_notices', 'devq_editor_contract_notice');
-
-
-/**
- * Drop the cached answer whenever core or a plugin updates, so the next admin
- * page load re-checks rather than waiting out the transient.
+ * Drop the cached answer whenever core or a plugin updates, so the next check
+ * re-runs rather than waiting out the transient.
  */
 add_action('upgrader_process_complete', function () {
     delete_transient('devq_editor_contract');
